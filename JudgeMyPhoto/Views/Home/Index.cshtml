@@ -1,0 +1,47 @@
+﻿@model Marcware.JudgeMyPhoto.ViewModels.SignInViewModel
+
+@{
+    ViewData["Title"] = "Home Page";
+    Layout = null;
+}
+
+<html>
+<head>
+    <link rel="stylesheet" href="css/indexstyles.css" />
+</head>
+<body class="main">
+    <div class="container">
+        <div class="content-w3ls">
+            @Html.BeginForm()
+            {
+                <div class="wthree-field">
+                    <div class="title">
+                        JUDGE MY PHOTO
+                    </div>
+                </div>
+                @if (ViewData.ModelState.Values.Any(v => v.Errors.Count > 0))
+                {
+                    <div class="validation-message">
+                        <div class="wthree-field">
+                            @Html.ValidationSummary()
+                        </div>
+                    </div>
+                }
+                <div class="field-group">
+                    <div class="wthree-field">
+                        @Html.TextBoxFor(m => m.UserName, new { @class = "input-field", placeholder = "Username / email" })
+                    </div>
+                </div>
+                <div class="field-group">
+                    <div class="wthree-field">
+                        @Html.PasswordFor(m => m.Password, new { @class = "input-field", placeholder = "Password" })
+                    </div>
+                </div>
+                <div class="wthree-field">
+                    <button type="submit" class="btn">Sign In</button>
+                </div>
+            }
+        </div>
+    </div>
+</body>
+</html>

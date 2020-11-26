@@ -1,0 +1,50 @@
+﻿@model Marcware.JudgeMyPhoto.ViewModels.Account.UserListViewModel
+@using Marcware.JudgeMyPhoto.Entities.Models;
+@using Marcware.JudgeMyPhoto.Constants;
+@using Microsoft.AspNetCore.Identity;
+@inject SignInManager<ApplicationUser> signInManager;
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+@if (signInManager.IsSignedIn(User) && User.IsInRole(JudgeMyPhotoRoles.Admin))
+{
+    <p>
+        <a asp-action="Add">Create New</a>
+    </p>
+}
+
+<div class="row info-table-header-row">
+    <div class="col">
+        @Html.DisplayNameFor(model => model.Items.FirstOrDefault().UserName)
+    </div>
+    <div class="col">
+        @Html.DisplayNameFor(model => model.Items.FirstOrDefault().Nickname)
+    </div>
+    <div class="col">
+        @Html.DisplayNameFor(model => model.Items.FirstOrDefault().Email)
+    </div>
+    <div class="col">
+    </div>
+</div>
+
+@foreach (var item in Model.Items)
+{
+    <div class="row info-table-data-row">
+        <div class="col">
+            @Html.DisplayFor(modelItem => item.UserName)
+        </div>
+        <div class="col">
+            @Html.DisplayFor(modelItem => item.Nickname)
+        </div>
+        <div class="col">
+            @Html.DisplayFor(modelItem => item.Email)
+        </div>
+        <div class="col">
+            @Html.ActionLink("Edit", "Edit", new { id = item.UserName }) |
+            @Html.ActionLink("Delete", "Delete", new { id = item.UserName })
+        </div>
+    </div>
+}

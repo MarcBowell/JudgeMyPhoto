@@ -1,0 +1,75 @@
+body {
+    background-color: black;
+}
+
+.info-table-header-row {
+    color: white;
+    padding-top: 30px;
+    font-weight: bold;
+    font-size: large;
+}
+
+.info-table-data-row {
+    color: silver;
+    padding-top: 10px;
+    font-size: medium;
+}
+
+.info-table-data-row a {
+    color: silver;
+    padding-top: 10px;
+    font-size: medium;
+    text-decoration: underline;
+}
+
+.photo-submit-area {
+    color: white;
+}
+
+.photo-submit-area-title {
+    font-weight: bold;
+    font-size: x-large;    
+    padding-top: 20px;
+}
+
+.photo-submit-area-body {
+    height: 200px;
+}
+
+.photo-submit-area-body p {
+    margin: 80px 0 80px 0;
+    padding: 7px 10px 7px 10px;
+    border: 3px solid white;
+    border-radius: 8px;
+    font-size: medium;
+    font-weight: bold;
+}
+
+.photo-submit-area-action {
+
+}
+
+.photo-small {
+    padding-top: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.small-photo-container {
+    width: 100%;
+    text-align: center;
+}
+
+.photo-small.landscape-image {
+    width: 300px;
+}
+
+.photo-small.portrait-image {
+    height: 300px;
+}
+
+.full-page-alert {
+    margin-top: 50px;
+}
+
+

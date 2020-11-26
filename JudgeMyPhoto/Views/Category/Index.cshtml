@@ -1,0 +1,58 @@
+﻿@model Marcware.JudgeMyPhoto.ViewModels.Category.CategoryListViewModel
+@using Microsoft.AspNetCore.Identity;
+@using Marcware.JudgeMyPhoto.Entities.Models;
+@using Marcware.JudgeMyPhoto.Constants;
+@inject SignInManager<ApplicationUser> signInManager;
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+@if (signInManager.IsSignedIn(User) && User.IsInRole(JudgeMyPhotoRoles.Admin))
+{
+    <p>
+        <a asp-action="Add">Create New</a>
+    </p>
+}
+<div class="row info-table-header-row">
+    <div class="col">
+        Category
+    </div>
+    <div class="col">
+        Status
+    </div>
+    <div class="col">
+        Action
+    </div>
+</div>
+
+@foreach (var item in Model.Items)
+{
+    <div class="row info-table-data-row">
+        <div class="col">
+            @Html.DisplayFor(_ => item.CategoryName)            
+        </div>
+        <div class="col">
+            @Html.DisplayFor(_ => item.StatusCodeText)
+        </div>
+        <div class="col">
+            @if (item.StatusCode == CategoryStatusCodes.SubmittingPhotos && signInManager.IsSignedIn(User) && User.IsInRole(JudgeMyPhotoRoles.Photographer))
+            {
+                <a href="@(Url.Action("Submit", "Photo", new { id = item.CategoryId }))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">Submit photos</a>
+            }
+            @if (item.StatusCode == CategoryStatusCodes.Judging && signInManager.IsSignedIn(User) && User.IsInRole(JudgeMyPhotoRoles.Photographer))
+            {
+                <a href="@(Url.Action("Index", "Photo"))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">Judge</a>
+            }
+            @if (item.StatusCode == CategoryStatusCodes.Completed && signInManager.IsSignedIn(User) && User.IsInRole(JudgeMyPhotoRoles.Photographer))
+            {
+                <a href="@(Url.Action("Index", "Photo"))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">View</a>
+            }
+            @if (signInManager.IsSignedIn(User) && User.IsInRole(JudgeMyPhotoRoles.Admin))
+            {
+                <a href="@(Url.Action("Edit", new { id = item.CategoryId }))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">Edit</a>
+                <a href="@(Url.Action("Delete", new { id = item.CategoryId }))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">Delete</a>
+            }
+        </div>
+    </div>
+}

@@ -1,0 +1,42 @@
+﻿@model Marcware.JudgeMyPhoto.ViewModels.Category.CategoryViewModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>CategoryViewModel</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="CategoryId" />
+            <div class="form-group">
+                <label asp-for="CategoryName" class="control-label"></label>
+                <input asp-for="CategoryName" class="form-control" />
+                <span asp-validation-for="CategoryName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StatusCode" class="control-label"></label>
+                <select asp-for="StatusCode" asp-items='@(new SelectList(Model.StatusCodeTypes.ToList(), "Key", "Value", Model.StatusCode))'>
+                </select>
+                <span asp-validation-for="StatusCode" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StatusText" class="control-label"></label>
+                <input asp-for="StatusText" class="form-control" />
+                <span asp-validation-for="StatusText" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
