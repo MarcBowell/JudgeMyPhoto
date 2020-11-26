@@ -4,40 +4,67 @@
     ViewData["Title"] = "Submit";
 }
 
-<div class="row justify-content-around">
-    <div class="col-4-sm photo-submit-area ">
-        <div class="row photo-submit-area-title">
-            <div class="col d-flex justify-content-center">
-                Photo 1
-            </div>
-        </div>
-        <div class="row photo-submit-area-body">
-            <div class="col d-flex justify-content-center">
-                <p>No photo submitted
-            </div>
-        </div>
-        <div class="row photo-submit-area-action">
-            <div class="col d-flex justify-content-center">
-                <input type="file" />
-            </div>
-        </div>
-    </div>
-    <div class="col-4-sm photo-submit-area ">
-        <div class="row photo-submit-area-title">
-            <div class="col d-flex justify-content-center">
-                Photo 2
-            </div>
-        </div>
-        <div class="row photo-submit-area-body">
-            <div class="col d-flex justify-content-center">
-                <p>No photo submitted
-            </div>
-        </div>
-        <div class="row photo-submit-area-action">
-            <div class="col d-flex justify-content-center">
-                <input type="file" />
-            </div>
-        </div>
-    </div>
-</div>
+<script type="application/javascript" src="https://unpkg.com/react@16.0.0/umd/react.production.min.js"></script>
+<script type="application/javascript" src="https://unpkg.com/react-dom@16.0.0/umd/react-dom.production.min.js"></script>
+<script type="application/javascript" src="https://unpkg.com/babel-standalone@6.26.0/babel.js"></script>
 
+<div id="root"></div>
+
+<script type="text/babel">
+    // Obtain the root
+    const rootElement = document.getElementById('root')
+    // Create a ES6 class components
+    class UploadImageComponent extends React.Component {
+        render() {
+            return (
+                <div className="col-4-sm photo-submit-area ">
+                    <div className="row photo-submit-area-title">
+                        <div className="col d-flex justify-content-center">
+                            Photo {this.props.photoNumber}
+                        </div>
+                    </div>
+                    <div className="row photo-submit-area-body">
+                        <div className="col d-flex justify-content-center">
+                            <p>No photo submitted</p>
+                        </div>
+                    </div>
+                    <div className="row photo-submit-area-action">
+                        <div className="col d-flex justify-content-center">
+                            <input type="file" />
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+    }
+
+    class UploadImageArea extends React.Component {
+    // Use the render function to return JSX component
+    render() {
+    return (
+    <div>        
+        <h1>Photo upload for category {this.props.categoryId}</h1>
+        <div className="row justify-content-around">
+            <UploadImageComponent photoNumber="1" />
+            <UploadImageComponent photoNumber="2" />
+        </div>
+    </div>
+    );
+    }
+    }
+
+    // Create a function to wrap up component
+    function App(){
+    return(
+    <div>
+        <UploadImageArea categoryId="@(Model.CategoryId)" />
+    </div>
+    )
+    }
+
+    // Use the ReactDOM.render to show your component on the browser
+    ReactDOM.render(
+    <App />,
+    rootElement
+    )
+</script>
