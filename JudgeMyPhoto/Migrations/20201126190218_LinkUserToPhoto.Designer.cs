@@ -3,14 +3,16 @@ using System;
 using Marcware.JudgeMyPhoto.Entities.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Marcware.JudgeMyPhoto.Migrations
 {
     [DbContext(typeof(JudgeMyPhotoDbContext))]
-    partial class JudgeMyPhotoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201126190218_LinkUserToPhoto")]
+    partial class LinkUserToPhoto
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -126,18 +128,11 @@ namespace Marcware.JudgeMyPhoto.Migrations
                     b.Property<byte[]>("LargeImage")
                         .HasColumnType("BLOB");
 
-                    b.Property<string>("Orientation")
-                        .HasMaxLength(1)
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("PhotographerId")
                         .HasColumnType("TEXT");
 
                     b.Property<byte[]>("SmallImage")
                         .HasColumnType("BLOB");
-
-                    b.Property<short>("UserCategoryPhotoNumber")
-                        .HasColumnType("INTEGER");
 
                     b.HasKey("PhotoId");
 

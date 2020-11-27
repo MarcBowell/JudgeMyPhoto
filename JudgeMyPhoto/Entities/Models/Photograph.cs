@@ -22,6 +22,18 @@ namespace Marcware.JudgeMyPhoto.Entities.Models
         public string FileType { get; set; }
 
         /// <summary>
+        /// Orientation of the photo
+        /// </summary>
+        [StringLength(1)]
+        [MaxLength(1)]
+        public string Orientation { get; set; }
+
+        /// <summary>
+        /// Number of the photo submitted by the user in this category
+        /// </summary>
+        public short UserCategoryPhotoNumber { get; set; }
+
+        /// <summary>
         /// Thumbnail image of the photo
         /// </summary>
         public byte[] SmallImage { get; set; }
@@ -36,5 +48,11 @@ namespace Marcware.JudgeMyPhoto.Entities.Models
         /// </summary>
         [Required]
         public PhotoCategory Category { get; set; }
+
+        /// <summary>
+        /// Photographer who took the photo
+        /// </summary>
+        [Required]
+        public ApplicationUser Photographer { get; set; }
     }
 }

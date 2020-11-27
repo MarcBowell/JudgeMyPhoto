@@ -27,6 +27,8 @@ namespace JudgeMyPhoto.Controllers
         public IActionResult Index()
         {
             SignInViewModel viewModel = new SignInViewModel();
+            viewModel.UserName = "HB";
+            viewModel.Password = "H1";
             return View(viewModel);
         }
 

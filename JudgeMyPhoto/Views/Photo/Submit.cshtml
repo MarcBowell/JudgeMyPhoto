@@ -7,6 +7,7 @@
 <script type="application/javascript" src="https://unpkg.com/react@16.0.0/umd/react.production.min.js"></script>
 <script type="application/javascript" src="https://unpkg.com/react-dom@16.0.0/umd/react-dom.production.min.js"></script>
 <script type="application/javascript" src="https://unpkg.com/babel-standalone@6.26.0/babel.js"></script>
+<script type="application/javascript" src="https://unpkg.com/axios/dist/axios.min.js"></script>
 
 <div id="root"></div>
 
@@ -15,6 +16,11 @@
     const rootElement = document.getElementById('root')
     // Create a ES6 class components
     class UploadImageComponent extends React.Component {
+        constructor(props) {
+            super(props);
+            this.state = {photoImage: ""};
+        }
+
         render() {
             return (
                 <div className="col-4-sm photo-submit-area ">
@@ -28,13 +34,39 @@
                             <p>No photo submitted</p>
                         </div>
                     </div>
+                    <div className="row photo-submit-area-body">
+                        <div className="col d-flex justify-content-center">
+                            <img src={this.state.photoImage}></img>
+                        </div>
+                    </div>
                     <div className="row photo-submit-area-action">
                         <div className="col d-flex justify-content-center">
-                            <input type="file" />
+                            <input type="file" onChange={this.fileSelectedHandler} />
                         </div>
                     </div>
                 </div>
             );
+        }
+
+        fileSelectedHandler = event => {
+            let filename = event.target.files[0].name;
+            let filetype = event.target.files[0].type;
+            console.log(filename);
+            console.log(filetype);
+
+            const fd = new FormData();
+            fd.append("FileContents", event.target.files[0], filename);
+            fd.append("FileType", filetype);
+            fd.append("PhotoNumber", this.props.photoNumber);
+            fd.append("CategoryId", this.props.categoryId);
+            axios.post("../SubmitPhoto", fd, {
+                    onUploadProgress: progressEvent => {
+                        console.log("Upload progress: " + Math.round((progressEvent.loaded / progressEvent.total) * 100));
+                    }})
+                .then(res => {
+                    this.setState({ photoImage: res.data.result });
+                    console.log(res);
+                });
         }
     }
 
@@ -45,8 +77,8 @@
     <div>        
         <h1>Photo upload for category {this.props.categoryId}</h1>
         <div className="row justify-content-around">
-            <UploadImageComponent photoNumber="1" />
-            <UploadImageComponent photoNumber="2" />
+            <UploadImageComponent photoNumber="1" categoryId={this.props.categoryId} />
+            <UploadImageComponent photoNumber="2" categoryId={this.props.categoryId} />
         </div>
     </div>
     );
