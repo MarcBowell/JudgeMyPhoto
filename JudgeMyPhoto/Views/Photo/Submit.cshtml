@@ -14,14 +14,33 @@
 <script type="text/babel">
     // Obtain the root
     const rootElement = document.getElementById('root')
+
     // Create a ES6 class components
     class UploadImageComponent extends React.Component {
         constructor(props) {
             super(props);
             this.state = {photoImage: ""};
+
+            const url = `../GetPreviewPhoto?cId=${this.props.categoryId}&pId=${this.props.photoNumber}`;
+            fetch(url)
+                .then((response) => {
+                    return response.json()
+                })
+                .then((data) => {                   
+                    console.log(data);
+                    this.setState({ photoImage: data.result });
+                });
         }
 
         render() {
+            let imagePreview;
+            if (this.state.photoImage == "") {
+                imagePreview = <p>No photo submitted</p>
+            }
+            else {
+                imagePreview = <img src={this.state.photoImage}></img>
+            }
+
             return (
                 <div className="col-4-sm photo-submit-area ">
                     <div className="row photo-submit-area-title">
@@ -31,12 +50,7 @@
                     </div>
                     <div className="row photo-submit-area-body">
                         <div className="col d-flex justify-content-center">
-                            <p>No photo submitted</p>
-                        </div>
-                    </div>
-                    <div className="row photo-submit-area-body">
-                        <div className="col d-flex justify-content-center">
-                            <img src={this.state.photoImage}></img>
+                            {imagePreview}
                         </div>
                     </div>
                     <div className="row photo-submit-area-action">
@@ -51,8 +65,6 @@
         fileSelectedHandler = event => {
             let filename = event.target.files[0].name;
             let filetype = event.target.files[0].type;
-            console.log(filename);
-            console.log(filetype);
 
             const fd = new FormData();
             fd.append("FileContents", event.target.files[0], filename);
@@ -65,7 +77,6 @@
                     }})
                 .then(res => {
                     this.setState({ photoImage: res.data.result });
-                    console.log(res);
                 });
         }
     }

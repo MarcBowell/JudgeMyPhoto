@@ -79,6 +79,23 @@ namespace Marcware.JudgeMyPhoto.Controllers
             return result;
         }
 
+        public async Task<ProcessResult<string>> GetPreviewPhoto(int cId, short pId)
+        {
+            Photograph photo = await _db.Photographs
+                .FirstOrDefaultAsync(p =>
+                    p.Category.CategoryId == cId &&
+                    p.UserCategoryPhotoNumber == pId &&
+                    p.Photographer.UserName == User.Identity.Name);
+
+            ProcessResult<string> result = new ProcessResult<string>();
+            if (photo == null)
+                result.SetResult(string.Empty);
+            else
+                result.SetResult(GetImageString(photo.SmallImage));
+
+            return result;                
+        }
+
         public IActionResult Index(int id)
         {
             return View();
