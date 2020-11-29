@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Marcware.JudgeMyPhoto.Classes;
 using Marcware.JudgeMyPhoto.Constants;
 using Marcware.JudgeMyPhoto.Entities.Context;
 using Marcware.JudgeMyPhoto.Entities.Models;
+using Marcware.JudgeMyPhoto.ExtensionMethods;
 using Marcware.JudgeMyPhoto.ViewModelMappers.Photo;
 using Marcware.JudgeMyPhoto.ViewModels.Photo;
 using Microsoft.AspNetCore.Authorization;
@@ -98,7 +100,33 @@ namespace Marcware.JudgeMyPhoto.Controllers
 
         public IActionResult Index(int id)
         {
-            return View();
+            ViewPhotosViewModelMapper mapper = new ViewPhotosViewModelMapper();
+            ViewPhotosViewModel viewModel = mapper.BuildViewModel(id);
+            return View(viewModel);
+        }
+
+        public async Task<ActionResult> GetFullPhoto(int pId, int cId)
+        {
+            Photograph photo = await _db.Photographs
+                .FirstOrDefaultAsync(p => p.PhotoId == pId && p.Category.CategoryId == cId);
+
+            if (photo == null)
+                return new JsonResult(string.Empty);
+            else
+                return File(photo.LargeImage, "image/jpg");
+        }
+
+        public async Task<JsonResult> GetPhotosForCategory(int id)
+        {
+            List<Photograph> photos = await _db.Photographs
+                .Where(p => p.Category.CategoryId == id)
+                .ToListAsync();
+            PhotoViewModelMapper mapper = new PhotoViewModelMapper();
+            List<PhotoViewModel> result = photos
+                .InRandomSequence()
+                .Select(p => mapper.BuildViewModel(p))
+                .ToList();
+            return new JsonResult(result);
         }
 
         private string GetImageString(byte[] imageContents)

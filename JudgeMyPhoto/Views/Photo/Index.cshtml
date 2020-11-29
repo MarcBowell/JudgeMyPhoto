@@ -1,7 +1,76 @@
-﻿
+﻿@model Marcware.JudgeMyPhoto.ViewModels.Photo.ViewPhotosViewModel
+
 @{
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<script type="application/javascript" src="https://unpkg.com/react@16.0.0/umd/react.production.min.js"></script>
+<script type="application/javascript" src="https://unpkg.com/react-dom@16.0.0/umd/react-dom.production.min.js"></script>
+<script type="application/javascript" src="https://unpkg.com/babel-standalone@6.26.0/babel.js"></script>
 
+<div id="root"></div>
+
+<script type="text/babel">
+    // Obtain the root
+    const rootElement = document.getElementById('root')
+
+    // Create a ES6 class components
+    class ImageComponent extends React.Component {
+        render() {
+            let photoUrl = `../GetFullPhoto?cId=${this.props.categoryId}&pId=${this.props.photoId}`;
+            let photoClass = "photo-small ";
+            if (this.props.orientation == "L")
+                photoClass = photoClass + "landscape-image";
+            else
+                photoClass = photoClass + "portrait-image";
+            return (
+                <img class={photoClass} src={photoUrl}></img>            
+            )};
+    }
+
+    class ImageViewingArea extends React.Component {
+        constructor(props) {
+            super(props);
+            this.state = { photos: [] };
+
+            let url = `../GetPhotosForCategory/${this.props.categoryId}`;
+            fetch(url)
+                .then((response) => {                    
+                    return response.json();
+                })
+                .then((data) => {
+                    this.setState({ photos: data });
+                });
+        }
+
+        // Use the render function to return JSX component
+        render() {
+            const items = this.state.photos.map((item) =>
+                <ImageComponent categoryId={this.props.categoryId} photoId={item.photoId} orientation={item.orientation} />
+            );
+            return (
+            <div>
+                <h1>Photo viewing area for category {this.props.categoryId}</h1>
+                <div class="small-photo-container">
+                    {items}
+                </div>
+            </div>
+            );
+        }
+    }
+
+    // Create a function to wrap up component
+    function App(){
+    return(
+    <div>
+        <ImageViewingArea categoryId="@(Model.CategoryId)" />
+    </div>
+    )
+    }
+
+    // Use the ReactDOM.render to show your component on the browser
+    ReactDOM.render(
+    <App />,
+    rootElement
+    )
+</script>
