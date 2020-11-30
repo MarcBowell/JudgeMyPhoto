@@ -30,6 +30,7 @@ body {
     font-weight: bold;
     font-size: x-large;    
     padding-top: 20px;
+    padding-bottom: 30px;
 }
 
 .photo-submit-area-body {
@@ -46,7 +47,33 @@ body {
 }
 
 .photo-submit-area-action {
+    padding-top: 40px;
+}
 
+.photo-submit-area-action .btn {    
+    border: none;
+    border-radius: 35px;
+    color: #fff;
+    padding: 11px 15px;
+    text-transform: uppercase;
+    font-family: sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+    width: 100%;
+    height: 50px;
+    margin-top: 10px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: 0.5s all;
+    -webkit-transition: 0.5s all;
+}
+
+.photo-submit-area-action .btn.action-upload {
+    background: #034d0c;
+}
+
+.photo-submit-area-action .btn.action-remove {
+    background: #ff0000;
 }
 
 .photo-small {
@@ -70,6 +97,10 @@ body {
 
 .full-page-alert {
     margin-top: 50px;
+}
+
+.invisible {
+    display: none;
 }
 
 

@@ -98,6 +98,28 @@ namespace Marcware.JudgeMyPhoto.Controllers
             return result;                
         }
 
+        [HttpPost]
+        public async Task<ProcessResult<bool>> RemovePhoto(RemovePhotoViewModel viewModel)
+        {
+            Photograph photo = await _db.Photographs
+                .FirstOrDefaultAsync(p =>
+                    p.Category.CategoryId == viewModel.CategoryId &&
+                    p.UserCategoryPhotoNumber == viewModel.PhotoNumber &&
+                    p.Photographer.UserName == User.Identity.Name);
+
+            ProcessResult<bool> result = new ProcessResult<bool>();
+            if (photo != null)
+            {
+                result = _db.SaveRemoves(photo);
+            }
+            else
+            {
+                result.AddError("Unable to find a photo with these details");
+            }
+
+            return result;
+        }
+
         public IActionResult Index(int id)
         {
             ViewPhotosViewModelMapper mapper = new ViewPhotosViewModelMapper();
