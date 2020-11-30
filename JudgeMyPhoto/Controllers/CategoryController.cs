@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Marcware.JudgeMyPhoto.Classes;
 using Marcware.JudgeMyPhoto.Constants;
 using Marcware.JudgeMyPhoto.Entities.Context;
@@ -54,10 +56,30 @@ namespace Marcware.JudgeMyPhoto.Controllers
                 ModelState.AddProcessResultErrors(categoryProcessResult);
 
                 if (categoryProcessResult.Success)
-                {
+                {                    
                     CategoryViewModelMapper mapper = new CategoryViewModelMapper();
-                    PhotoCategory repositoryModel = mapper.BuildRepositoryModel(viewModel, categoryProcessResult.Result);
-                    ProcessResult<bool> saveResult = _db.SaveUpdates(repositoryModel);
+
+                    ProcessResult<List<Photograph>> photosToUpdateResult = new ProcessResult<List<Photograph>>();                    
+                    if (viewModel.StatusCode == CategoryStatusCodes.Judging && categoryProcessResult.Result.StatusCode != CategoryStatusCodes.Judging)
+                    {
+                        photosToUpdateResult = await GetPhotoNameUpdatesAsync(viewModel.CategoryId, viewModel.PhotoNamingThemeCode);
+                    }
+
+                    // Save photo naming changes
+                    ProcessResult<bool> saveResult = new ProcessResult<bool>();
+                    if (photosToUpdateResult.Success && (photosToUpdateResult.Result?.Count ?? 0) > 0)
+                    {
+                        saveResult = _db.SaveUpdates(photosToUpdateResult.Result.ToArray());
+                    }
+
+                    // Save category changes
+                    if (photosToUpdateResult.Success && saveResult.Success)
+                    {
+                        PhotoCategory repositoryModel = mapper.BuildRepositoryModel(viewModel, categoryProcessResult.Result);
+                        saveResult = _db.SaveUpdates(repositoryModel);
+                    }
+
+                    ModelState.AddProcessResultErrors(photosToUpdateResult);
                     ModelState.AddProcessResultErrors(saveResult);
                 }
             }
@@ -66,6 +88,42 @@ namespace Marcware.JudgeMyPhoto.Controllers
                 return RedirectToAction("Index");
             else
                 return View(viewModel);
+        }
+
+        private async Task<ProcessResult<List<Photograph>>> GetPhotoNameUpdatesAsync(int categoryId, string namingThemeCode)
+        {
+            string[] existingNames = await _db.Photographs
+                .Where(p => p.Category.CategoryId == categoryId && !string.IsNullOrEmpty(p.AnonymousPhotoName))
+                .Select(p => p.AnonymousPhotoName)
+                .ToArrayAsync();
+
+            List<string> potentialNames = PhotoNamingThemes
+                .GetThemeItems(namingThemeCode)
+                .Minus(existingNames)
+                .InRandomSequence();
+
+            List<Photograph> photosToUpdate = await _db.Photographs
+                .Where(p => p.Category.CategoryId == categoryId && string.IsNullOrEmpty(p.AnonymousPhotoName))
+                .ToListAsync();
+            photosToUpdate = photosToUpdate.InRandomSequence();
+
+            ProcessResult<List<Photograph>> result = new ProcessResult<List<Photograph>>();
+            if (photosToUpdate.Count > potentialNames.Count)
+            {
+                result.AddError("Not enough anonymous photo names to assign for the number of photos in this category");
+            }
+            else
+            {
+                int itemNo = 0;
+                foreach (Photograph photo in photosToUpdate)
+                {
+                    photo.AnonymousPhotoName = potentialNames[itemNo];
+                    itemNo++;
+                }
+                result.SetResult(photosToUpdate);
+            }
+
+            return result;
         }
         #endregion
 

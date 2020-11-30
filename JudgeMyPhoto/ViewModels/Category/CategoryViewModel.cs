@@ -34,8 +34,22 @@ namespace Marcware.JudgeMyPhoto.ViewModels.Category
         public string StatusText { get; set; }
 
         /// <summary>
+        /// Theme used in the category when giving anonymous names to the photos
+        /// </summary>
+        [Display(Name = "Photo naming theme")]
+        [StringLength(3)]
+        [MaxLength(3)]
+        public string PhotoNamingThemeCode { get; set; }
+
+        /// <summary>
         /// Collection of all status types available
         /// </summary>
         public IEnumerable<KeyValuePair<string, string>> StatusCodeTypes { get; set; }
+
+
+        /// <summary>
+        /// Collection of all photo naming themes available
+        /// </summary>
+        public IEnumerable<KeyValuePair<string, string>> PhotoNamingThemeTypes { get; set; }
     }
 }

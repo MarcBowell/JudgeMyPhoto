@@ -35,6 +35,13 @@ namespace Marcware.JudgeMyPhoto.Entities.Models
         public string StatusText { get; set; }
 
         /// <summary>
+        /// Theme used in the category when giving anonymous names to the photos
+        /// </summary>
+        [StringLength(3)]
+        [MaxLength(3)]
+        public string PhotoNamingThemeCode { get; set; }
+
+        /// <summary>
         /// Photos for this category
         /// </summary>
         public IEnumerable<Photograph> Photographs { get; set; }

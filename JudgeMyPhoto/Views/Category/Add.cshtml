@@ -30,6 +30,12 @@
                 <span asp-validation-for="StatusText" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label asp-for="PhotoNamingThemeCode" class="control-label"></label>
+                <select asp-for="PhotoNamingThemeCode" asp-items='@(new SelectList(Model.PhotoNamingThemeTypes.ToList(), "Key", "Value", Model.PhotoNamingThemeCode))'>
+                </select>
+                <span asp-validation-for="PhotoNamingThemeCode" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
         </form>

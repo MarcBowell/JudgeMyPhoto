@@ -2,6 +2,7 @@
 using System.Linq;
 using Marcware.JudgeMyPhoto.Constants;
 using Marcware.JudgeMyPhoto.Entities.Models;
+using Marcware.JudgeMyPhoto.ExtensionMethods;
 using Marcware.JudgeMyPhoto.ViewModels.Category;
 
 namespace Marcware.JudgeMyPhoto.ViewModelMappers.Category
@@ -15,11 +16,13 @@ namespace Marcware.JudgeMyPhoto.ViewModelMappers.Category
             {
                 viewModel.StatusText = "Initialising category";
                 viewModel.StatusCode = CategoryStatusCodes.SettingUp;
+                viewModel.PhotoNamingThemeCode = PhotoNamingThemes.ThemeCodes.Fruit;
             }
             else
             {
                 viewModel.CategoryId = repositoryModel.CategoryId;
                 viewModel.CategoryName = repositoryModel.CategoryName;
+                viewModel.PhotoNamingThemeCode = repositoryModel.PhotoNamingThemeCode;
                 if (CategoryStatusCodes.GetAll().Contains(repositoryModel.StatusCode))
                 {
                     viewModel.StatusCode = repositoryModel.StatusCode;
@@ -34,6 +37,10 @@ namespace Marcware.JudgeMyPhoto.ViewModelMappers.Category
             viewModel.StatusCodeTypes = CategoryStatusCodes
                 .GetAll()
                 .Select(c => new KeyValuePair<string, string>(c, CategoryStatusCodes.GetStatusText(c)));
+            viewModel.PhotoNamingThemeTypes = PhotoNamingThemes
+                .ThemeCodes
+                .GetAll()
+                .Select(p => new KeyValuePair<string, string>(p, PhotoNamingThemes.GetThemeDescription(p)));
             return viewModel;
         }
 
@@ -44,6 +51,7 @@ namespace Marcware.JudgeMyPhoto.ViewModelMappers.Category
             existingRepositoryModel.CategoryName = viewModel.CategoryName;
             existingRepositoryModel.StatusCode = viewModel.StatusCode;
             existingRepositoryModel.StatusText = viewModel.StatusText;
+            existingRepositoryModel.PhotoNamingThemeCode = viewModel.PhotoNamingThemeCode;
             return existingRepositoryModel;
         }
     }
