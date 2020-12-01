@@ -17,12 +17,12 @@ using Microsoft.EntityFrameworkCore;
 namespace Marcware.JudgeMyPhoto.Controllers
 {
     [Authorize(Roles = JudgeMyPhotoRoles.Photographer)]
-    public class PhotoController : Controller
+    public class PhotosController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly JudgeMyPhotoDbContext _db;
 
-        public PhotoController(UserManager<ApplicationUser> userManager, JudgeMyPhotoDbContext db)
+        public PhotosController(UserManager<ApplicationUser> userManager, JudgeMyPhotoDbContext db)
         {
             _userManager = userManager;
             _db = db;
@@ -156,6 +156,11 @@ namespace Marcware.JudgeMyPhoto.Controllers
             string imreBase64Data = Convert.ToBase64String(imageContents);
             string result = string.Format("data:image/jpg;base64,{0}", imreBase64Data);
             return result;
+        }
+
+        public IActionResult TestViewer()
+        {
+            return View();
         }
     }
 }

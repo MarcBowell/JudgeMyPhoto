@@ -38,15 +38,15 @@
         <div class="col">
             @if (item.StatusCode == CategoryStatusCodes.SubmittingPhotos && signInManager.IsSignedIn(User) && User.IsInRole(JudgeMyPhotoRoles.Photographer))
             {
-                <a href="@(Url.Action("Submit", "Photo", new { id = item.CategoryId }))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">Submit photos</a>
+                <a href="@(Url.Action("Submit", "Photos", new { id = item.CategoryId }))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">Submit photos</a>
             }
             @if (item.StatusCode == CategoryStatusCodes.Judging && signInManager.IsSignedIn(User) && User.IsInRole(JudgeMyPhotoRoles.Photographer))
             {
-                <a href="@(Url.Action("Index", "Photo", new { id = item.CategoryId }))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">Judge</a>
+                <a href="@(Url.Action("Index", "Photos", new { id = item.CategoryId }))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">Judge</a>
             }
             @if (item.StatusCode == CategoryStatusCodes.Completed && signInManager.IsSignedIn(User) && User.IsInRole(JudgeMyPhotoRoles.Photographer))
             {
-                <a href="@(Url.Action("Index", "Photo", new { id = item.CategoryId }))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">View</a>
+                <a href="@(Url.Action("Index", "Photos", new { id = item.CategoryId }))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">View</a>
             }
             @if (signInManager.IsSignedIn(User) && User.IsInRole(JudgeMyPhotoRoles.Admin))
             {
