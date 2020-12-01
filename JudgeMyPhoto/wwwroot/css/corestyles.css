@@ -76,6 +76,14 @@ body {
     background: #ff0000;
 }
 
+.btn.photo-viewer-nav-button {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    background: #ff0000;
+    color: white;
+    font-weight: bold;
+}
+
 .photo-small {
     padding-top: 20px;
     padding-left: 5px;
@@ -103,4 +111,51 @@ body {
     display: none;
 }
 
+img.slideshow-image {
+    height: 90vh;
+    width: 90vh;
+    object-fit: cover;
+}
 
+.carousel-photo-container {
+    display: grid;
+    height: 100%;
+}
+
+.carousel-photo-image {
+    max-width: 90%;
+    max-height: 90vh;
+    margin: auto;
+}
+
+.carousel-caption {
+    position: relative;
+    left: 0;
+    top: 0;
+    padding-top: 1px;
+}
+
+.carousel-control-next {
+    justify-content: flex-end;
+    margin: 50px 0 0 0;
+}
+
+.carousel-control-prev {
+    justify-content: flex-start;
+}
+
+.carousel-photo-name {
+    color: white;
+    font-size: medium;
+    font-weight: bold;
+}
+
+.close {
+    font-size: 2.5em;
+    color: #ffffff;
+    text-shadow: none;
+}
+
+.close:hover {
+    color: #808080;
+}

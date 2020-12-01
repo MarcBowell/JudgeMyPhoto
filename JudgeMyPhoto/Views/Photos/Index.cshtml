@@ -27,11 +27,12 @@
                 <img class={photoClass} src={photoUrl}></img>            
             )};
     }
-
+    
+    const ViewTypes = Object.freeze({"slideShow": 1, "photoList": 2 });
     class ImageViewingArea extends React.Component {
         constructor(props) {
             super(props);
-            this.state = { photos: [] };
+            this.state = { photos: [], viewType: ViewTypes.photoList };            
 
             let url = `../GetPhotosForCategory/${this.props.categoryId}`;
             fetch(url)
@@ -43,29 +44,105 @@
                 });
         }
 
-        // Use the render function to return JSX component
-        render() {
+        renderPhotoList = () => {
             const items = this.state.photos.map((item) =>
                 <ImageComponent categoryId={this.props.categoryId} photoId={item.photoId} orientation={item.orientation} />
             );
             return (
-            <div>
-                <h1>Photo viewing area for category {this.props.categoryId}</h1>
-                <div class="small-photo-container">
-                    {items}
+                <div>
+                    <nav>
+                        <button type="button" class="btn photo-viewer-nav-button" onClick={this.slideshowButtonClick}>Slideshow</button>
+                    </nav>
+                    <div class="small-photo-container">
+                        {items}
+                    </div>
                 </div>
-            </div>
+            );
+        }
+
+        slideshowButtonClick = () => {
+            this.setState({ viewType: ViewTypes.slideShow });
+        }
+
+        carouselCloseButtonClick = () => {
+            this.setState({ viewType: ViewTypes.photoList });
+        }
+
+        renderSlideShow = () => {
+            return (
+                <PhotoCarousel categoryId={this.props.categoryId} photos={this.state.photos} closeButtonClick={this.carouselCloseButtonClick} />
+            );
+        }
+
+        render() {
+            if (this.state.viewType == ViewTypes.photoList) 
+                return this.renderPhotoList();
+            else
+                return this.renderSlideShow();
+        }
+    }
+
+    class PhotoCarousel extends React.Component {
+        closeButtonClick = (e) => {
+            e.stopPropagation();
+            this.props.closeButtonClick();
+        }
+
+        render() {
+            const items = this.props.photos.map((item, index) => {
+                const activeValue = (index == 0 ? "true" : "false");
+                return (
+                    <PhotoCarouselItem categoryId={this.props.categoryId} photoId={item.photoId} title={item.title} active={activeValue} />            
+                )
+            });
+
+            return (
+                <div id="myCarousel" class="carousel slide" data-ride="carousel">
+                    <div class="carousel-inner" role="listbox">
+                        {items}
+                        <button type="button" class="close" aria-label="Close" onClick={(e) => this.closeButtonClick(e)}>
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <a class="carousel-control-prev" href="#myCarousel" role="button" data-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                            <span class="sr-only">Previous</span>
+                        </a>
+                        <a class="carousel-control-next" href="#myCarousel" role="button" data-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                            <span class="sr-only">Next</span>
+                        </a>
+                    </div>
+                </div>
+            );
+        }
+    }
+
+    class PhotoCarouselItem extends React.Component {
+        render() {
+            let photoUrl = `../GetFullPhoto?cId=${this.props.categoryId}&pId=${this.props.photoId}`; 
+            let itemClass = "carousel-item";
+            if (this.props.active == "true")
+                itemClass = itemClass + " active";
+            return (
+                <div class={itemClass}>
+                    <div class="carousel-photo-container">
+                        <img class="carousel-photo-image" src={photoUrl} />
+                    </div>
+                    <div class="carousel-caption carousel-photo-name">
+                        {this.props.title}
+                    </div>
+                </div>
             );
         }
     }
 
     // Create a function to wrap up component
     function App(){
-    return(
-    <div>
-        <ImageViewingArea categoryId="@(Model.CategoryId)" />
-    </div>
-    )
+        return(
+            <div>
+                <ImageViewingArea categoryId="@(Model.CategoryId)" />
+            </div>
+        )
     }
 
     // Use the ReactDOM.render to show your component on the browser

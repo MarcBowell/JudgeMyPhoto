@@ -10,6 +10,7 @@ namespace Marcware.JudgeMyPhoto.ViewModelMappers.Photo
             PhotoViewModel viewModel = new PhotoViewModel();
             viewModel.PhotoId = repositoryModel.PhotoId;
             viewModel.Orientation = repositoryModel.Orientation;
+            viewModel.Title = repositoryModel.AnonymousPhotoName;
             return viewModel;
         }
     }
