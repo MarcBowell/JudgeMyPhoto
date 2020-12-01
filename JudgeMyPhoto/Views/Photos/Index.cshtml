@@ -33,7 +33,10 @@
         constructor(props) {
             super(props);
             this.state = { photos: [], viewType: ViewTypes.photoList };            
-
+            this.getPhotosFromServer();
+        }
+       
+        getPhotosFromServer = () => {
             let url = `../GetPhotosForCategory/${this.props.categoryId}`;
             fetch(url)
                 .then((response) => {                    
@@ -41,7 +44,7 @@
                 })
                 .then((data) => {
                     this.setState({ photos: data });
-                });
+                });            
         }
 
         renderPhotoList = () => {
@@ -52,6 +55,7 @@
                 <div>
                     <nav>
                         <button type="button" class="btn photo-viewer-nav-button" onClick={this.slideshowButtonClick}>Slideshow</button>
+                        <button type="button" class="btn photo-viewer-nav-button" onClick={this.getPhotosFromServer}>Shuffle</button>
                     </nav>
                     <div class="small-photo-container">
                         {items}

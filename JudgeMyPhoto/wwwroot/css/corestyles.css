@@ -79,6 +79,7 @@ body {
 .btn.photo-viewer-nav-button {
     margin-top: 5px;
     margin-bottom: 5px;
+    margin-right: 5px;
     background: #ff0000;
     color: white;
     font-weight: bold;
