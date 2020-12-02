@@ -1,4 +1,5 @@
-﻿using Marcware.JudgeMyPhoto.Entities.Models;
+﻿using Marcware.JudgeMyPhoto.Constants;
+using Marcware.JudgeMyPhoto.Entities.Models;
 using Marcware.JudgeMyPhoto.ViewModels.Photo;
 
 namespace Marcware.JudgeMyPhoto.ViewModelMappers.Photo
@@ -10,7 +11,10 @@ namespace Marcware.JudgeMyPhoto.ViewModelMappers.Photo
             PhotoViewModel viewModel = new PhotoViewModel();
             viewModel.PhotoId = repositoryModel.PhotoId;
             viewModel.Orientation = repositoryModel.Orientation;
-            viewModel.Title = repositoryModel.AnonymousPhotoName;
+            if (repositoryModel.Category.StatusCode == CategoryStatusCodes.Completed)
+                viewModel.Title = $"'{repositoryModel.AnonymousPhotoName}' by {repositoryModel.Photographer.Nickname}";
+            else
+                viewModel.Title = $"'{repositoryModel.AnonymousPhotoName}'";
             return viewModel;
         }
     }

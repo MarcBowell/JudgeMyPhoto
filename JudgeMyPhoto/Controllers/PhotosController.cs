@@ -141,6 +141,8 @@ namespace Marcware.JudgeMyPhoto.Controllers
         public async Task<JsonResult> GetPhotosForCategory(int id)
         {
             List<Photograph> photos = await _db.Photographs
+                .Include(p => p.Category)
+                .Include(p => p.Photographer)
                 .Where(p => p.Category.CategoryId == id)
                 .ToListAsync();
             PhotoViewModelMapper mapper = new PhotoViewModelMapper();
