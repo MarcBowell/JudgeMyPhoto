@@ -112,9 +112,10 @@ a.app-add-button {
 }
 
 .photo-small {
+    cursor: pointer;
     padding-top: 20px;
-    padding-left: 5px;
-    padding-right: 5px;
+    padding-left: 8px;
+    padding-right: 8px;    
 }
 
 .small-photo-container {

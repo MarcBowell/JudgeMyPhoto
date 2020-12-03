@@ -1,7 +1,7 @@
 ﻿@model Marcware.JudgeMyPhoto.ViewModels.Photo.ViewPhotosViewModel
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "JMP > View photos";
 }
 
 <script type="application/javascript" src="https://unpkg.com/react@16.0.0/umd/react.production.min.js"></script>
@@ -24,15 +24,20 @@
             else
                 photoClass = photoClass + "portrait-image";
             return (
-                <img class={photoClass} src={photoUrl}></img>            
+                <img class={photoClass} src={photoUrl} onClick={(e) => this.photoHandleClick(e, this.props.photoId)}></img>            
             )};
+
+        photoHandleClick = (e, pId) => {
+            e.stopPropagation();            
+            this.props.selectPhotoClick(pId);
+        }
     }
     
     const ViewTypes = Object.freeze({"slideShow": 1, "photoList": 2 });
     class ImageViewingArea extends React.Component {
         constructor(props) {
             super(props);
-            this.state = { photos: [], viewType: ViewTypes.photoList };            
+            this.state = { photos: [], viewType: ViewTypes.photoList, activeSlideshowPhoto: 0 };            
             this.getPhotosFromServer();
         }
        
@@ -47,9 +52,13 @@
                 });            
         }
 
+        selectPhotoClick = (photoId) => {
+            this.setState({ activeSlideshowPhoto: photoId, viewType: ViewTypes.slideShow });
+        }
+
         renderPhotoList = () => {
             const items = this.state.photos.map((item) =>
-                <ImageComponent categoryId={this.props.categoryId} photoId={item.photoId} orientation={item.orientation} />
+                <ImageComponent categoryId={this.props.categoryId} photoId={item.photoId} orientation={item.orientation} selectPhotoClick={this.selectPhotoClick} />
             );
             return (
                 <div>
@@ -65,7 +74,7 @@
         }
 
         slideshowButtonClick = () => {
-            this.setState({ viewType: ViewTypes.slideShow });
+            this.setState({ activeSlideshowPhoto: 0, viewType: ViewTypes.slideShow });
         }
 
         carouselCloseButtonClick = () => {
@@ -74,7 +83,7 @@
 
         renderSlideShow = () => {
             return (
-                <PhotoCarousel categoryId={this.props.categoryId} photos={this.state.photos} closeButtonClick={this.carouselCloseButtonClick} />
+                <PhotoCarousel categoryId={this.props.categoryId} photos={this.state.photos} activePhoto={this.state.activeSlideshowPhoto} closeButtonClick={this.carouselCloseButtonClick} />
             );
         }
 
@@ -93,8 +102,10 @@
         }
 
         render() {
-            const items = this.props.photos.map((item, index) => {
-                const activeValue = (index == 0 ? "true" : "false");
+            const items = this.props.photos.map((item, index) => {                
+                const activeValue = ((index == 0 && this.props.activePhoto == 0) ||
+                    (item.photoId == this.props.activePhoto)
+                    ? "true" : "false");
                 return (
                     <PhotoCarouselItem categoryId={this.props.categoryId} photoId={item.photoId} title={item.title} active={activeValue} />            
                 )
