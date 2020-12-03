@@ -2,24 +2,50 @@ body {
     background-color: black;
 }
 
+.info-table {
+    text-align: center;
+}
+
 .info-table-header-row {
     color: white;
     padding-top: 30px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 20px;
     font-weight: bold;
-    font-size: large;
+    font-size: larger;
+    text-decoration: underline;
 }
 
 .info-table-data-row {
     color: silver;
     padding-top: 10px;
-    font-size: medium;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: large;
+    font-weight: bold;
 }
 
 .info-table-data-row a {
     color: silver;
-    padding-top: 10px;
-    font-size: medium;
-    text-decoration: underline;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    width: 180px;
+    text-decoration: none;
+    font-size: large;
+    font-weight: bold;
+}
+
+a.app-add-button {
+    color: silver;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    width: 180px;
+    text-decoration: none;
+    font-size: large;
+    font-weight: bold;
+    margin-top: 5px;
+    margin-left: 5px;
 }
 
 .photo-submit-area {
@@ -159,4 +185,74 @@ img.slideshow-image {
 
 .close:hover {
     color: #808080;
+}
+
+.container {
+    padding-left: 0px;
+    padding-right: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    max-width: 5000px!important;
+}
+
+label.control-label {
+    color: white;
+}
+
+.form-control {
+    display: initial;
+    width: 400px;
+}
+
+form {
+    padding-top: 20px;
+    width: 100%;
+}
+
+.app-label {
+    color: white;
+    padding-right: 30px;
+    float: right;
+}
+
+.app-textbox {
+    margin-left: 20px;
+    width: 91%;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border-radius: .25rem;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+
+.app-save-button {
+    margin-left: 18px;
+}
+
+.app-delete-button {
+    margin-left: 10px;
+}
+
+.app-select {
+    margin-left: 20px;
+    width: 91%;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border-radius: .25rem;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+
+dl {
+    padding-left: 10px;
+    color: white;
+    font-size: large;
+}
+
+h3 {
+    color: white;
+    padding-left: 10px;
+    padding-top: 20px;
+}
+
+hr {
+    color: white;
 }

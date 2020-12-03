@@ -5,15 +5,16 @@
 @inject SignInManager<ApplicationUser> signInManager;
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "JMP > Category list";
 }
 
 @if (signInManager.IsSignedIn(User) && User.IsInRole(JudgeMyPhotoRoles.Admin))
 {
     <p>
-        <a asp-action="Add">Create New</a>
+        <a asp-action="Add" class="btn btn-primary btn-sm active app-add-button">Create New</a>
     </p>
 }
+   
 <div class="row info-table-header-row">
     <div class="col">
         Category
@@ -21,8 +22,7 @@
     <div class="col">
         Status
     </div>
-    <div class="col">
-        Action
+    <div class="col">            
     </div>
 </div>
 
@@ -30,10 +30,10 @@
 {
     <div class="row info-table-data-row">
         <div class="col">
-            @Html.DisplayFor(_ => item.CategoryName)            
+            @Html.DisplayFor(_ => item.CategoryName)
         </div>
         <div class="col">
-            @Html.DisplayFor(_ => item.StatusCodeText)
+            @Html.DisplayFor(_ => item.StatusText)
         </div>
         <div class="col">
             @if (item.StatusCode == CategoryStatusCodes.SubmittingPhotos && signInManager.IsSignedIn(User) && User.IsInRole(JudgeMyPhotoRoles.Photographer))
@@ -42,16 +42,16 @@
             }
             @if (item.StatusCode == CategoryStatusCodes.Judging && signInManager.IsSignedIn(User) && User.IsInRole(JudgeMyPhotoRoles.Photographer))
             {
-                <a href="@(Url.Action("Index", "Photos", new { id = item.CategoryId }))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">Judge</a>
+                <a href="@(Url.Action("Index", "Photos", new { id = item.CategoryId }))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">Judge photos</a>
             }
             @if (item.StatusCode == CategoryStatusCodes.Completed && signInManager.IsSignedIn(User) && User.IsInRole(JudgeMyPhotoRoles.Photographer))
             {
-                <a href="@(Url.Action("Index", "Photos", new { id = item.CategoryId }))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">View</a>
+                <a href="@(Url.Action("Index", "Photos", new { id = item.CategoryId }))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">View photos</a>
             }
             @if (signInManager.IsSignedIn(User) && User.IsInRole(JudgeMyPhotoRoles.Admin))
             {
                 <a href="@(Url.Action("Edit", new { id = item.CategoryId }))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">Edit</a>
-                <a href="@(Url.Action("Delete", new { id = item.CategoryId }))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">Delete</a>
+                <a href="@(Url.Action("Delete", new { id = item.CategoryId }))" class="btn btn-danger btn-sm active" role="button" aria-disabled="true">Delete</a>
             }
         </div>
     </div>

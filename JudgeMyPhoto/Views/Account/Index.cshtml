@@ -5,16 +5,12 @@
 @inject SignInManager<ApplicationUser> signInManager;
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "JMP > Users list";
 }
 
-<h1>Index</h1>
-@if (signInManager.IsSignedIn(User) && User.IsInRole(JudgeMyPhotoRoles.Admin))
-{
-    <p>
-        <a asp-action="Add">Create New</a>
-    </p>
-}
+<p>
+    <a asp-action="Add" class="btn btn-primary btn-sm active app-add-button">Create New</a>
+</p>
 
 <div class="row info-table-header-row">
     <div class="col">

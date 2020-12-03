@@ -4,7 +4,7 @@ namespace Marcware.JudgeMyPhoto.ViewModels.Account
 {
     public class UserViewModel
     {
-        [Display(Name = "Username")]
+        [Display(Name = "User name")]
         public string UserName { get; set; }
 
         [Display(Name = "Nickname")]
@@ -13,7 +13,7 @@ namespace Marcware.JudgeMyPhoto.ViewModels.Account
         [Display(Name = "Email")]
         public string Email { get; set; }
 
-        [Display(Name = "Password")]
+        [Display(Name = "Change password")]
         public string Password { get; set; }
 
         [Display(Name = "Confirm password")]
