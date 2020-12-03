@@ -18,10 +18,13 @@ namespace JudgeMyPhoto.Controllers
 
         public readonly SignInManager<ApplicationUser> _signInManager;
 
-        public HomeController(ILogger<HomeController> logger, SignInManager<ApplicationUser> signInManager)
+        public readonly UserManager<ApplicationUser> _userManager;
+
+        public HomeController(ILogger<HomeController> logger, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
         {
             _logger = logger;
             _signInManager = signInManager;
+            _userManager = userManager;
         }
 
         public IActionResult Index()
@@ -35,6 +38,15 @@ namespace JudgeMyPhoto.Controllers
         [HttpPost]
         public async Task<IActionResult> Index(SignInViewModel viewModel)
         {
+            // Assume it is an email address
+            if (viewModel.UserName.Contains("@"))
+            {
+                ApplicationUser user = await _userManager.FindByEmailAsync(viewModel.UserName);
+                if (user != null)
+                    viewModel.UserName = user.UserName;
+            }
+
+            // Attempt to sign in
             Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(viewModel.UserName, viewModel.Password, false, false);
             if (result.Succeeded)
             {
