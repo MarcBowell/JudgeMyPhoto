@@ -19,7 +19,12 @@ namespace Marcware.JudgeMyPhoto.ExtensionMethods
         {
             if (!result.Success)
             {
-                modelState.AddModelError(string.Empty, result.ErrorMessage);
+                if (!string.IsNullOrEmpty(result.ErrorMessage))
+                    modelState.AddModelError(string.Empty, result.ErrorMessage);
+                foreach (var fieldError in result.FieldErrors)
+                {
+                    modelState.AddModelError(fieldError.FieldName, fieldError.ErrorMessage);
+                }
             }
         }
     }

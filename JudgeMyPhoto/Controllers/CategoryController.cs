@@ -50,6 +50,15 @@ namespace Marcware.JudgeMyPhoto.Controllers
         [Authorize(Roles = JudgeMyPhotoRoles.Admin)]
         public async Task<ActionResult> Edit(CategoryViewModel viewModel)
         {
+            if (viewModel == null)
+                ModelState.AddModelError(string.Empty, "View model is null");
+
+            if (ModelState.IsValid)
+            {
+                ProcessResult<bool> categoryUniqueResult = await CategoryViewModelIsValid(viewModel, viewModel.CategoryId);
+                ModelState.AddProcessResultErrors(categoryUniqueResult);
+            }
+
             if (ModelState.IsValid)
             {
                 ProcessResult<PhotoCategory> categoryProcessResult = await GetPhotoCategory(viewModel.CategoryId);
@@ -60,7 +69,8 @@ namespace Marcware.JudgeMyPhoto.Controllers
                     CategoryViewModelMapper mapper = new CategoryViewModelMapper();
 
                     ProcessResult<List<Photograph>> photosToUpdateResult = new ProcessResult<List<Photograph>>();                    
-                    if (viewModel.StatusCode == CategoryStatusCodes.Judging && categoryProcessResult.Result.StatusCode != CategoryStatusCodes.Judging)
+                    if ((viewModel.StatusCode == CategoryStatusCodes.Judging || viewModel.StatusCode == CategoryStatusCodes.Completed) && 
+                        categoryProcessResult.Result.StatusCode != viewModel.StatusCode)
                     {
                         photosToUpdateResult = await GetPhotoNameUpdatesAsync(viewModel.CategoryId, viewModel.PhotoNamingThemeCode);
                     }
@@ -85,9 +95,15 @@ namespace Marcware.JudgeMyPhoto.Controllers
             }
 
             if (ModelState.IsValid)
+            {
                 return RedirectToAction("Index");
+            }
             else
+            {
+                CategoryViewModelMapper mapper = new CategoryViewModelMapper();
+                viewModel = mapper.BuildViewModelDropdownCriteria(viewModel);
                 return View(viewModel);
+            }
         }
 
         private async Task<ProcessResult<List<Photograph>>> GetPhotoNameUpdatesAsync(int categoryId, string namingThemeCode)
@@ -138,8 +154,17 @@ namespace Marcware.JudgeMyPhoto.Controllers
 
         [HttpPost]
         [Authorize(Roles = JudgeMyPhotoRoles.Admin)]
-        public IActionResult Add(CategoryViewModel viewModel)
+        public async Task<IActionResult> Add(CategoryViewModel viewModel)
         {
+            if (viewModel == null)
+                ModelState.AddModelError(string.Empty, "View model is null");
+
+            if (ModelState.IsValid)
+            {
+                ProcessResult<bool> categoryUniqueResult = await CategoryViewModelIsValid(viewModel);
+                ModelState.AddProcessResultErrors(categoryUniqueResult);                
+            }
+
             if (ModelState.IsValid)
             {
                 CategoryViewModelMapper mapper = new CategoryViewModelMapper();
@@ -149,9 +174,15 @@ namespace Marcware.JudgeMyPhoto.Controllers
             }
 
             if (ModelState.IsValid)
+            {
                 return RedirectToAction("Index");
+            }
             else
+            {
+                CategoryViewModelMapper mapper = new CategoryViewModelMapper();
+                viewModel = mapper.BuildViewModelDropdownCriteria(viewModel);
                 return View(viewModel);
+            }
         }
         #endregion
 
@@ -182,7 +213,38 @@ namespace Marcware.JudgeMyPhoto.Controllers
                 return RedirectToAction("Index");
             else
                 return View(viewModel);
-        } 
+        }
+        #endregion
+
+        #region Helper validation methods
+        private async Task<ProcessResult<bool>> CategoryViewModelIsValid(CategoryViewModel viewModel, int existingCategoryId = 0)
+        {
+            ProcessResult<bool> result = new ProcessResult<bool>();
+
+            PhotoCategory category = await _db
+                .PhotoCategories
+                .FirstOrDefaultAsync(p => p.CategoryName.ToUpper() == viewModel.CategoryName.ToUpper()
+                    && p.CategoryId != existingCategoryId);
+            if (category != null)
+                result.AddFieldError("CategoryName", "You dummy. A category with name has already been created");
+
+            if (!CategoryStatusCodes.GetAll().Contains(viewModel.StatusCode))
+                result.AddFieldError("StatusCode", "Invalid status code");
+
+            if (!PhotoNamingThemes.ThemeCodes.GetAll().Contains(viewModel.PhotoNamingThemeCode))
+                result.AddFieldError("PhotoNamingThemeCode", "Invalid theme code");
+
+            if (existingCategoryId != 0)
+            {
+                category = await _db
+                    .PhotoCategories
+                    .FirstOrDefaultAsync(p => p.CategoryId == existingCategoryId);
+                if (category == null)
+                    result.AddError("This category cannot be found"); 
+            }
+
+            return result;
+        }
         #endregion
 
         #region Helper methods

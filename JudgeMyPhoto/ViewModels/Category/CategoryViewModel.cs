@@ -15,6 +15,7 @@ namespace Marcware.JudgeMyPhoto.ViewModels.Category
         /// Category text
         /// </summary>
         [Display(Name = "Name")]
+        [Required(ErrorMessage = "Fool. A category must have a description.")]
         public string CategoryName { get; set; }
 
         /// <summary>
@@ -23,6 +24,7 @@ namespace Marcware.JudgeMyPhoto.ViewModels.Category
         [Display(Name = "Status")]
         [StringLength(2)]
         [MaxLength(2)]
+        [Required(ErrorMessage = "A category must have a status")]
         public string StatusCode { get; set; }
 
         /// <summary>
@@ -31,6 +33,7 @@ namespace Marcware.JudgeMyPhoto.ViewModels.Category
         [Display(Name = "Status text")]
         [StringLength(200)]
         [MaxLength(200)]
+        [Required(ErrorMessage = "Now don't be silly. This can't be empty.")]
         public string StatusText { get; set; }
 
         /// <summary>
@@ -39,6 +42,7 @@ namespace Marcware.JudgeMyPhoto.ViewModels.Category
         [Display(Name = "Photo naming theme")]
         [StringLength(3)]
         [MaxLength(3)]
+        [Required(ErrorMessage = "A theme must be specified")]
         public string PhotoNamingThemeCode { get; set; }
 
         /// <summary>

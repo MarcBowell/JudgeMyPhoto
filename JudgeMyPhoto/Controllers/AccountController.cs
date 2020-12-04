@@ -1,6 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Marcware.JudgeMyPhoto.Classes;
 using Marcware.JudgeMyPhoto.Constants;
+using Marcware.JudgeMyPhoto.Entities.Context;
 using Marcware.JudgeMyPhoto.Entities.Models;
 using Marcware.JudgeMyPhoto.ExtensionMethods;
 using Marcware.JudgeMyPhoto.ViewModelMappers.Account;
@@ -15,13 +17,15 @@ namespace Marcware.JudgeMyPhoto.Controllers
     {
         #region Constructor
         private readonly UserManager<ApplicationUser> _userManager;
-        public readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly JudgeMyPhotoDbContext _db;
 
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, JudgeMyPhotoDbContext db)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-        } 
+            _db = db;
+        }
         #endregion
 
         #region Index
@@ -31,7 +35,7 @@ namespace Marcware.JudgeMyPhoto.Controllers
             UserListViewModelMapper mapper = new UserListViewModelMapper();
             UserListViewModel viewModel = mapper.BuildViewModel(_userManager.Users);
             return View(viewModel);
-        } 
+        }
         #endregion
 
         #region My profile
@@ -42,12 +46,23 @@ namespace Marcware.JudgeMyPhoto.Controllers
             ProcessResult<UserViewModel> viewModelProcess = await GetUserViewModel(userName);
             ModelState.AddProcessResultErrors(viewModelProcess);
             return View(viewModelProcess.Result);
-        } 
+        }
 
         [HttpPost]
         [Authorize(Roles = JudgeMyPhotoRoles.AllRoles)]
         public async Task<IActionResult> MyProfile(UserViewModel viewModel)
         {
+            if (viewModel != null)
+                viewModel.UserName = User.Identity.Name;
+            else
+                ModelState.AddModelError(string.Empty, "View model is empty");
+
+            if (ModelState.IsValid)
+            {
+                ProcessResult<bool> uniqueUserResult = await UserIdentityDetailsAreUniqueAsync(viewModel, User.Identity.Name);
+                ModelState.AddProcessResultErrors(uniqueUserResult);
+            }
+
             if (ModelState.IsValid)
             {
                 ProcessResult<bool> result = await SaveUserViewModel(viewModel, FormMode.Edit);
@@ -73,6 +88,20 @@ namespace Marcware.JudgeMyPhoto.Controllers
         [Authorize(Roles = JudgeMyPhotoRoles.Admin)]
         public async Task<IActionResult> Add(UserViewModel viewModel)
         {
+            if (viewModel == null)
+                ModelState.AddModelError(string.Empty, "View model is empty");
+
+            if (ModelState.IsValid)
+            {
+                ProcessResult<bool> uniqueUserResult = await UserIdentityDetailsAreUniqueAsync(viewModel);
+                ModelState.AddProcessResultErrors(uniqueUserResult);
+
+                if (string.IsNullOrEmpty(viewModel.Password))
+                    ModelState.AddModelError("Password", "A password must be entered");
+                if (string.IsNullOrEmpty(viewModel.ConfirmPassword))
+                    ModelState.AddModelError("ConfirmPassword", "A password must be entered");
+            }
+
             if (ModelState.IsValid)
             {
                 ProcessResult<bool> result = await SaveUserViewModel(viewModel, FormMode.Add);
@@ -87,6 +116,7 @@ namespace Marcware.JudgeMyPhoto.Controllers
         #endregion
 
         #region Edit
+        [Authorize(Roles = JudgeMyPhotoRoles.Admin)]
         public async Task<IActionResult> Edit(string id)
         {
             ProcessResult<UserViewModel> viewModelProcess = await GetUserViewModel(id);
@@ -95,8 +125,18 @@ namespace Marcware.JudgeMyPhoto.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = JudgeMyPhotoRoles.Admin)]
         public async Task<IActionResult> Edit(UserViewModel viewModel)
         {
+            if (viewModel == null)
+                ModelState.AddModelError(string.Empty, "View model is empty");
+
+            if (ModelState.IsValid)
+            {
+                ProcessResult<bool> uniqueUserResult = await UserIdentityDetailsAreUniqueAsync(viewModel, viewModel.UserName);
+                ModelState.AddProcessResultErrors(uniqueUserResult);
+            }
+
             if (ModelState.IsValid)
             {
                 ProcessResult<bool> result = await SaveUserViewModel(viewModel, FormMode.Edit);
@@ -144,7 +184,39 @@ namespace Marcware.JudgeMyPhoto.Controllers
         {
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
-        } 
+        }
+        #endregion
+
+        #region Validation helper methods
+        private async Task<ProcessResult<bool>> UserIdentityDetailsAreUniqueAsync(UserViewModel viewModel, string existingUserName = "")
+        {
+            ProcessResult<bool> result = new ProcessResult<bool>();
+
+            // User name is unique            
+            ApplicationUser userByUserName = await _userManager.FindByNameAsync(viewModel.UserName);
+            // Attempting to add an existing user name
+            if (userByUserName != null && string.IsNullOrEmpty(existingUserName))
+                result.AddFieldError("UserName", $"Copy cat. User name '{viewModel.UserName}' already exists");
+            if (userByUserName == null && !string.IsNullOrEmpty(existingUserName))
+                result.AddFieldError("UserName", $"Copy cat. User with user name '{viewModel.UserName}' cannot be found");
+
+            ApplicationUser userByEmail = await _userManager.FindByEmailAsync(viewModel.Email);
+            // Attempting to add an email of the same address
+            if (userByEmail != null && string.IsNullOrEmpty(existingUserName))
+                result.AddFieldError("Email", $"Copy cat. Email address '{viewModel.Email}' already exists for another user");
+            if (userByEmail != null && !string.IsNullOrEmpty(existingUserName) && viewModel.UserName != userByEmail.UserName)
+                result.AddFieldError("Email", $"Copy cat. Email address '{viewModel.Email}' already exists for another user");
+
+            //TODO: Inject this into the controller
+            ApplicationUser userByNickname = _db.Users.FirstOrDefault(u => u.Nickname.ToUpper() == viewModel.Nickname.ToUpper());
+            if (userByNickname != null && string.IsNullOrEmpty(existingUserName))
+                result.AddFieldError("Nickname", "Copy cat. Nickname already exists for another user");
+            if (userByNickname != null && !string.IsNullOrEmpty(existingUserName) && userByNickname.UserName != viewModel.UserName)
+                result.AddFieldError("Nickname", "Copy cat. Nickname already exists for another user");
+
+            return result;
+        }
+
         #endregion
 
         #region Helper methods

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Identity;
 
 namespace Marcware.JudgeMyPhoto.Classes
@@ -12,6 +13,17 @@ namespace Marcware.JudgeMyPhoto.Classes
         public void AddError(string errorMessage)
         {
             ErrorMessage = errorMessage;
+            Success = false;
+        }
+
+        /// <summary>
+        /// Log an error against a specific field
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="errorMessage"></param>
+        public void AddFieldError(string fieldName, string errorMessage)
+        {
+            FieldErrors.Add(new FieldError(fieldName, errorMessage));
             Success = false;
         }
 
@@ -49,5 +61,34 @@ namespace Marcware.JudgeMyPhoto.Classes
         /// Result of the process
         /// </summary>
         public T Result { get; private set; }
+
+        /// <summary>
+        /// All errors 
+        /// </summary>
+        public List<FieldError> FieldErrors { get; private set; } = new List<FieldError>();
+    }
+
+    public class FieldError
+    {
+        /// <summary>
+        /// Create a field error with details
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="errorMessage"></param>
+        public FieldError(string fieldName, string errorMessage)
+        {
+            FieldName = fieldName;
+            ErrorMessage = errorMessage;
+        }
+
+        /// <summary>
+        /// Field name where the error occurred
+        /// </summary>
+        public string FieldName { get; private set; }
+
+        /// <summary>
+        /// Error messsage
+        /// </summary>
+        public string ErrorMessage { get; set; }
     }
 }

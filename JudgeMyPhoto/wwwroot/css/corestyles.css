@@ -225,6 +225,16 @@ form {
     transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
 }
 
+span.text-danger, div.text-danger {
+    width: 91%;
+    background-color: lightpink;
+    display: block;
+    margin-left: 20px;    
+    border-radius: .25rem;
+    font-weight: bold;
+    padding-left: 5px;
+}
+
 .app-save-button {
     margin-left: 18px;
 }

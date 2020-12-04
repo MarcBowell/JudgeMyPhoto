@@ -34,6 +34,12 @@ namespace Marcware.JudgeMyPhoto.ViewModelMappers.Category
                     viewModel.StatusCode = CategoryStatusCodes.SettingUp;
                 }
             }
+            viewModel = BuildViewModelDropdownCriteria(viewModel);
+            return viewModel;
+        }
+
+        public CategoryViewModel BuildViewModelDropdownCriteria(CategoryViewModel viewModel)
+        {
             viewModel.StatusCodeTypes = CategoryStatusCodes
                 .GetAll()
                 .Select(c => new KeyValuePair<string, string>(c, CategoryStatusCodes.GetStatusText(c)));
