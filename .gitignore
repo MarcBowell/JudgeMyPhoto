@@ -2,3 +2,5 @@
 JudgeMyPhoto/bin/
 JudgeMyPhoto/obj/
 JudgeMyPhoto/app_data/JudgeMyPhotoDatabase.*
+JudgeMyPhoto/.config/
+JudgeMyPhoto/Properties/PublishProfiles/

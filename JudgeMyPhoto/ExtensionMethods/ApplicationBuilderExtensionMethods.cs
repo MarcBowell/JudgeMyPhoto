@@ -54,7 +54,8 @@ namespace Marcware.JudgeMyPhoto.ExtensionMethods
 
                 if (result.Succeeded)
                 {
-                    string password = $"{userName}123!";
+                    // Change this password as required
+                    string password = $"##{userName}##";
                     result = userManager.CreateApplicationUserAsync(userName, userName, emailAddress, password, JudgeMyPhotoRoles.Admin).Result;
                 }
             }

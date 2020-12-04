@@ -16,26 +16,26 @@
 }
    
 <div class="row info-table-header-row">
-    <div class="col">
+    <div class="col-sm-3">
         Category
     </div>
-    <div class="col">
+    <div class="col-sm-6">
         Status
     </div>
-    <div class="col">            
+    <div class="col-sm-3">            
     </div>
 </div>
 
 @foreach (var item in Model.Items)
 {
     <div class="row info-table-data-row">
-        <div class="col">
+        <div class="col-sm-3">
             @Html.DisplayFor(_ => item.CategoryName)
         </div>
-        <div class="col">
+        <div class="col-sm-6">
             @Html.DisplayFor(_ => item.StatusText)
         </div>
-        <div class="col">
+        <div class="col-sm-3">
             @if (item.StatusCode == CategoryStatusCodes.SubmittingPhotos && signInManager.IsSignedIn(User) && User.IsInRole(JudgeMyPhotoRoles.Photographer))
             {
                 <a href="@(Url.Action("Submit", "Photos", new { id = item.CategoryId }))" class="btn btn-primary btn-sm active" role="button" aria-disabled="true">Submit photos</a>

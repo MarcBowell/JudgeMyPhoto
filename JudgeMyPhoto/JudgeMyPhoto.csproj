@@ -11,6 +11,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="app_data\JudgeMyPhotoDatabase.db" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="app_data\JudgeMyPhotoDatabase.db">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="wwwroot\images\Camera.jpg" />
   </ItemGroup>
 
@@ -29,11 +39,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" Version="2.2.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.4" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.2" />
-  </ItemGroup>
-
-
-  <ItemGroup>
-    <Folder Include="app_data\" />
   </ItemGroup>
 
 </Project>

@@ -154,7 +154,7 @@ namespace Marcware.JudgeMyPhoto.Controllers
         #region Photo viewing and judging
         public async Task<IActionResult> Index(int id)
         {
-            ProcessResult<bool> categoryStatus = await CategoryIsInRequiredStatus(id, CategoryStatusCodes.Judging);
+            ProcessResult<bool> categoryStatus = await CategoryIsInRequiredStatus(id, CategoryStatusCodes.Judging, CategoryStatusCodes.Completed);
 
             if (categoryStatus.Success)
             {
@@ -203,7 +203,7 @@ namespace Marcware.JudgeMyPhoto.Controllers
             return result;
         } 
 
-        private async Task<ProcessResult<bool>> CategoryIsInRequiredStatus(int categoryId, string status)
+        private async Task<ProcessResult<bool>> CategoryIsInRequiredStatus(int categoryId, params string[] statuses)
         {
             ProcessResult<bool> result = new ProcessResult<bool>();
 
@@ -214,7 +214,7 @@ namespace Marcware.JudgeMyPhoto.Controllers
             if (category == null)
                 result.AddError("Cannot find category");
 
-            if (result.Success && category.StatusCode != status)
+            if (result.Success && !statuses.Contains(category.StatusCode))
                 result.AddError("Category does not have the correct status to perform this action");
 
             return result;
