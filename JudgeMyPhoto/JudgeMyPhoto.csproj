@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
+    <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>aspnet-JudgeMyPhoto-D92DF0BD-0EEA-43DE-A878-2118D318CE43</UserSecretsId>
     <RootNamespace>Marcware.JudgeMyPhoto</RootNamespace>

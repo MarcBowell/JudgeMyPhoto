@@ -19,6 +19,7 @@ namespace Marcware.JudgeMyPhoto.Controllers
     [Authorize(Roles = JudgeMyPhotoRoles.Photographer)]
     public class PhotosController : Controller
     {
+        #region Constructor
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly JudgeMyPhotoDbContext _db;
 
@@ -27,57 +28,78 @@ namespace Marcware.JudgeMyPhoto.Controllers
             _userManager = userManager;
             _db = db;
         }
+        #endregion
 
-        public IActionResult Submit(int id)
+        #region Submit photos
+        public async Task<IActionResult> Submit(int id)
         {
-            SubmitPhotosViewModel viewModel = new SubmitPhotosViewModel();
-            viewModel.CategoryId = id;
-            return View(viewModel);
+            ProcessResult<bool> categoryStatus = await CategoryIsInRequiredStatus(id, CategoryStatusCodes.SubmittingPhotos);
+
+            if (categoryStatus.Success)
+            {
+                SubmitPhotosViewModel viewModel = new SubmitPhotosViewModel();
+                viewModel.CategoryId = id;
+                return View(viewModel);
+            }
+            else
+            {
+                return RedirectToAction("Index", "Category");
+            }
         }
 
         [HttpPost]
-        [Authorize(Roles = JudgeMyPhotoRoles.Photographer)]
         public async Task<ProcessResult<string>> SubmitPhoto(SubmitSinglePhotoViewModel viewModel)
         {
             ProcessResult<string> result = new ProcessResult<string>();
 
-            Photograph photo = await _db.Photographs
-                .FirstOrDefaultAsync(p => 
-                    p.Category.CategoryId == viewModel.CategoryId && 
-                    p.UserCategoryPhotoNumber == viewModel.PhotoNumber &&
-                    p.Photographer.UserName == User.Identity.Name);
-            SubmitSinglePhotoViewModelMapper mapper = new SubmitSinglePhotoViewModelMapper();
-            ProcessResult<bool> saveResult = null;
+            ProcessResult<bool> categoryStatus = await CategoryIsInRequiredStatus(viewModel.CategoryId, CategoryStatusCodes.SubmittingPhotos);            
+            if (!categoryStatus.Success)
+                result.AddError(categoryStatus.ErrorMessage);
 
-            if (photo == null)
-            {
-                ApplicationUser user = await _userManager.FindByNameAsync(User.Identity.Name);
-                if (user == null)
-                    result.AddError("Unable to find this user");
-
-                PhotoCategory category = await _db.PhotoCategories.FirstOrDefaultAsync(c => c.CategoryId == viewModel.CategoryId);
-                if (category == null)
-                    result.AddError("Unable to find this category");
-                
-                if (result.Success)
-                    photo = mapper.BuildRepositoryModel(viewModel, user, category);
-
-                saveResult = _db.SaveAdditions(photo);
-            }
-            else
-            {
-                photo = mapper.BuildRepositoryModel(viewModel, photo);
-                saveResult = _db.SaveUpdates(photo);
-            }
+            if (!viewModel.FileType.ToLower().StartsWith("image"))
+                result.AddError("Silly thing. Only an image file type is allowed");
 
             if (result.Success)
-            {                
-                if (saveResult.Success)
-                    result.SetResult(GetImageString(photo.SmallImage));
+            {
+                Photograph photo = await _db.Photographs
+                        .FirstOrDefaultAsync(p =>
+                            p.Category.CategoryId == viewModel.CategoryId &&
+                            p.UserCategoryPhotoNumber == viewModel.PhotoNumber &&
+                            p.Photographer.UserName == User.Identity.Name);
+                SubmitSinglePhotoViewModelMapper mapper = new SubmitSinglePhotoViewModelMapper();
+                ProcessResult<bool> saveResult = null;
+
+                if (photo == null)
+                {
+                    ApplicationUser user = await _userManager.FindByNameAsync(User.Identity.Name);
+                    if (user == null)
+                        result.AddError("Unable to find this user");
+
+                    PhotoCategory category = await _db.PhotoCategories.FirstOrDefaultAsync(c => c.CategoryId == viewModel.CategoryId);
+                    if (category == null)
+                        result.AddError("Unable to find this category");
+
+                    if (result.Success)
+                    {
+                        photo = mapper.BuildRepositoryModel(viewModel, user, category);
+                        saveResult = _db.SaveAdditions(photo);
+                    }
+                }
                 else
-                    result.AddError(saveResult.ErrorMessage);
+                {
+                    photo = mapper.BuildRepositoryModel(viewModel, photo);
+                    saveResult = _db.SaveUpdates(photo);
+                }
+
+                if (result.Success)
+                {
+                    if (saveResult.Success)
+                        result.SetResult(GetImageString(photo.SmallImage));
+                    else
+                        result.AddError(saveResult.ErrorMessage);
+                } 
             }
-                        
+
             return result;
         }
 
@@ -95,36 +117,55 @@ namespace Marcware.JudgeMyPhoto.Controllers
             else
                 result.SetResult(GetImageString(photo.SmallImage));
 
-            return result;                
+            return result;
         }
 
         [HttpPost]
         public async Task<ProcessResult<bool>> RemovePhoto(RemovePhotoViewModel viewModel)
         {
-            Photograph photo = await _db.Photographs
-                .FirstOrDefaultAsync(p =>
-                    p.Category.CategoryId == viewModel.CategoryId &&
-                    p.UserCategoryPhotoNumber == viewModel.PhotoNumber &&
-                    p.Photographer.UserName == User.Identity.Name);
-
             ProcessResult<bool> result = new ProcessResult<bool>();
-            if (photo != null)
+            
+            ProcessResult<bool> categoryStatus = await CategoryIsInRequiredStatus(viewModel.CategoryId, CategoryStatusCodes.SubmittingPhotos);
+            if (!categoryStatus.Success)
+                result.AddError(categoryStatus.ErrorMessage);
+
+            if (result.Success)
             {
-                result = _db.SaveRemoves(photo);
-            }
-            else
-            {
-                result.AddError("Unable to find a photo with these details");
+                Photograph photo = await _db.Photographs
+                    .FirstOrDefaultAsync(p =>
+                        p.Category.CategoryId == viewModel.CategoryId &&
+                        p.UserCategoryPhotoNumber == viewModel.PhotoNumber &&
+                        p.Photographer.UserName == User.Identity.Name);
+
+                if (photo != null)
+                {
+                    result = _db.SaveRemoves(photo);
+                }
+                else
+                {
+                    result.AddError("Unable to find a photo with these details");
+                } 
             }
 
             return result;
         }
+        #endregion
 
-        public IActionResult Index(int id)
+        #region Photo viewing and judging
+        public async Task<IActionResult> Index(int id)
         {
-            ViewPhotosViewModelMapper mapper = new ViewPhotosViewModelMapper();
-            ViewPhotosViewModel viewModel = mapper.BuildViewModel(id);
-            return View(viewModel);
+            ProcessResult<bool> categoryStatus = await CategoryIsInRequiredStatus(id, CategoryStatusCodes.Judging);
+
+            if (categoryStatus.Success)
+            {
+                ViewPhotosViewModelMapper mapper = new ViewPhotosViewModelMapper();
+                ViewPhotosViewModel viewModel = mapper.BuildViewModel(id);
+                return View(viewModel);
+            }
+            else
+            {
+                return RedirectToAction("Index", "Category");
+            }
         }
 
         public async Task<ActionResult> GetFullPhoto(int pId, int cId)
@@ -152,17 +193,32 @@ namespace Marcware.JudgeMyPhoto.Controllers
                 .ToList();
             return new JsonResult(result);
         }
+        #endregion
 
+        #region Helper methods
         private string GetImageString(byte[] imageContents)
         {
             string imreBase64Data = Convert.ToBase64String(imageContents);
             string result = string.Format("data:image/jpg;base64,{0}", imreBase64Data);
             return result;
-        }
+        } 
 
-        public IActionResult TestViewer()
+        private async Task<ProcessResult<bool>> CategoryIsInRequiredStatus(int categoryId, string status)
         {
-            return View();
+            ProcessResult<bool> result = new ProcessResult<bool>();
+
+            PhotoCategory category = await _db.
+                PhotoCategories
+                .FirstOrDefaultAsync(p => p.CategoryId == categoryId);
+
+            if (category == null)
+                result.AddError("Cannot find category");
+
+            if (result.Success && category.StatusCode != status)
+                result.AddError("Category does not have the correct status to perform this action");
+
+            return result;
         }
+        #endregion
     }
 }

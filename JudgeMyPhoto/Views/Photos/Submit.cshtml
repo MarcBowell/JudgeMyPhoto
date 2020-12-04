@@ -86,23 +86,46 @@
                  });
         }
 
-        fileSelectedHandler = event => {
-            let filename = event.target.files[0].name;
-            let filetype = event.target.files[0].type;
+        fileUploadIsValid = (event) => {                        
+            let message = "";
 
-            const fd = new FormData();
-            fd.append("FileContents", event.target.files[0], filename);
-            fd.append("FileType", filetype);
-            fd.append("PhotoNumber", this.props.photoNumber);
-            fd.append("CategoryId", this.props.categoryId);
-            axios.post("../SubmitPhoto", fd, {
-                onUploadProgress: progressEvent => {
-                    console.log("Upload progress: " + Math.round((progressEvent.loaded / progressEvent.total) * 100));
-                    this.setState({ uploadProgress: Math.round((progressEvent.loaded / progressEvent.total) * 100) });
-                }})
-                .then(res => {                    
-                    this.setState({ photoImage: res.data.result, uploadProgress: 0 });
-                });
+            if (event.target.files.length > 1)
+                message = "Don't be silly. Only one photo can be selected at a time'";
+
+            if (message == "" && !event.target.files[0].type.startsWith("image/"))
+                message = "You are a dummy. Only image type files can be selected'";
+
+            if (message != "") 
+                alert(message);
+
+            return (message == "");
+        }
+
+        fileSelectedHandler = (event) => {
+            if (event.target.files.length > 0 && this.fileUploadIsValid(event)) {
+                let filetype = event.target.files[0].type;
+                let filename = event.target.files[0].name;
+    
+                const fd = new FormData();
+                fd.append("FileContents", event.target.files[0], filename);
+                fd.append("FileType", filetype);
+                fd.append("PhotoNumber", this.props.photoNumber);
+                fd.append("CategoryId", this.props.categoryId);
+                axios.post("../SubmitPhoto", fd, {
+                    onUploadProgress: progressEvent => {
+                        console.log("Upload progress: " + Math.round((progressEvent.loaded / progressEvent.total) * 100));
+                        this.setState({ uploadProgress: Math.round((progressEvent.loaded / progressEvent.total) * 100) });
+                    }})
+                    .then(res => {                    
+                        if (res.data.success) {
+                            this.setState({ photoImage: res.data.result, uploadProgress: 0 });
+                        }
+                        else {
+                            this.setState({ uploadProgress: 0 });
+                            alert(res.data.errorMessage);
+                        }
+                    });
+            }
         }
     }
 
