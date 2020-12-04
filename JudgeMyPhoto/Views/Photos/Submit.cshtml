@@ -19,7 +19,7 @@
     class UploadImageComponent extends React.Component {
         constructor(props) {
         super(props);
-        this.state = {photoImage: ""};
+        this.state = {photoImage: "", uploadProgress: 0, loadingImage: true};
 
         const url = `../GetPreviewPhoto?cId=${this.props.categoryId}&pId=${this.props.photoNumber}`;
         fetch(url)
@@ -28,16 +28,25 @@
         })
         .then((data) => {
             console.log(data);
-            this.setState({ photoImage: data.result });
+            this.setState({ photoImage: data.result, loadingImage: false });            
         });
     }
 
     render() {
         let imagePreview;
         let actionButton;
-        if (this.state.photoImage == "") {
-            imagePreview = <p>No photo submitted</p>
-            actionButton = <button type="button" class="btn action-upload" onClick={() => this.fileInput.click()}>Select Photo</button>
+        if (this.state.photoImage == "") {            
+            if (this.state.uploadProgress == 0 && !this.state.loadingImage) {
+                imagePreview = <p>No photo submitted</p>
+                actionButton = <button type="button" class="btn action-upload" onClick={() => this.fileInput.click()}>Select Photo</button>
+            }
+            else {
+                if (this.state.loadingImage)
+                    imagePreview = <p>Loading image...</p>
+                else
+                    imagePreview = <p>Uploading: {this.state.uploadProgress}%</p>
+                actionButton = <div></div>
+            }
         }
         else {
             imagePreview = <img src={this.state.photoImage}></img>
@@ -89,9 +98,10 @@
             axios.post("../SubmitPhoto", fd, {
                 onUploadProgress: progressEvent => {
                     console.log("Upload progress: " + Math.round((progressEvent.loaded / progressEvent.total) * 100));
+                    this.setState({ uploadProgress: Math.round((progressEvent.loaded / progressEvent.total) * 100) });
                 }})
-                .then(res => {
-                    this.setState({ photoImage: res.data.result });
+                .then(res => {                    
+                    this.setState({ photoImage: res.data.result, uploadProgress: 0 });
                 });
         }
     }
