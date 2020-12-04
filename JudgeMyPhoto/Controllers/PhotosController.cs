@@ -176,7 +176,7 @@ namespace Marcware.JudgeMyPhoto.Controllers
             if (photo == null)
                 return new JsonResult(string.Empty);
             else
-                return File(photo.LargeImage, "image/jpg");
+                return File(photo.LargeImage, photo.FileType);
         }
 
         public async Task<JsonResult> GetPhotosForCategory(int id)

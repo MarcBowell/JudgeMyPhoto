@@ -1,5 +1,9 @@
 .main {
-    background: url(../images/camera.jpg) no-repeat center;
+    background: url(../images/camera.jpg) no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
 }
 
 .input-field {

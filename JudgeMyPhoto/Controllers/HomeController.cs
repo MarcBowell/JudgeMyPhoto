@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -30,40 +27,38 @@ namespace JudgeMyPhoto.Controllers
         public IActionResult Index()
         {
             SignInViewModel viewModel = new SignInViewModel();
-            viewModel.UserName = "HB";
-            viewModel.Password = "H1";
             return View(viewModel);
         }
 
         [HttpPost]
         public async Task<IActionResult> Index(SignInViewModel viewModel)
         {
-            // Assume it is an email address
-            if (viewModel.UserName.Contains("@"))
+            if (ModelState.IsValid)
             {
-                ApplicationUser user = await _userManager.FindByEmailAsync(viewModel.UserName);
-                if (user != null)
-                    viewModel.UserName = user.UserName;
+                // Assume it is an email address
+                if (viewModel.UserName.Contains("@"))
+                {
+                    ApplicationUser user = await _userManager.FindByEmailAsync(viewModel.UserName);
+                    if (user != null)
+                        viewModel.UserName = user.UserName;
+                }
+
+                // Attempt to sign in
+                Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(viewModel.UserName, viewModel.Password, false, false);
+                if (!result.Succeeded)
+                    ModelState.AddModelError(string.Empty, "User or password details are incorrect");
             }
 
-            // Attempt to sign in
-            Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(viewModel.UserName, viewModel.Password, false, false);
-            if (result.Succeeded)
+            if (ModelState.IsValid)
             {
                 return RedirectToAction("Index", "Category");
             }
             else
             {
-                ModelState.AddModelError(string.Empty, "User or password details are incorrect");
-                return View();
+                viewModel.Password = string.Empty;
+                return View(viewModel);
             }
         }        
-
-        private bool SignInUser(string userName, string password)
-        {
-            //TODO: Sign in the user
-            return false;
-        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
