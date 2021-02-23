@@ -48,7 +48,8 @@ class ImageViewingArea extends React.Component {
             activeSlideshowPhoto: 0,
             currentVoteIndex: 0,
             provisionalVotes: [0, 0, 0],
-            lastExceptionMessage: ""
+            lastExceptionMessage: "",
+            existingVotes: []
         };
         this.getPhotosFromServer();
     }
@@ -61,6 +62,15 @@ class ImageViewingArea extends React.Component {
             })
             .then((data) => {
                 this.setState({ photos: data });
+            });
+
+        let votesUrl = `../GetExistingVotes/${this.props.categoryId}`;
+        fetch(votesUrl)
+            .then((response) => {
+                return response.json();
+            })
+            .then((data) => {    
+                this.setState({ existingVotes: data.result });
             });
     }
 
@@ -88,7 +98,7 @@ class ImageViewingArea extends React.Component {
 
     renderPhotoList = () => {
         const items = this.state.photos.map((item) =>
-            <ImageComponent categoryId={this.props.categoryId} photoId={item.photoId} orientation={item.orientation} selectPhotoClick={this.selectPhotoClick} votingPosition={this.viewType == ViewTypes.photoList ? item.votingPosition : this.getProvisionalVotingFor(item.photoId)} viewType={this.state.viewType} />
+            <ImageComponent categoryId={this.props.categoryId} photoId={item.photoId} orientation={item.orientation} selectPhotoClick={this.selectPhotoClick} votingPosition={this.viewType == ViewTypes.photoList ? 0 : this.getProvisionalVotingFor(item.photoId)} viewType={this.state.viewType} />
         );
         return (
             <div>
@@ -104,11 +114,20 @@ class ImageViewingArea extends React.Component {
     renderPhotoListMenu = () => {
         return (
             <nav class="navbar nav-tabs ml-auto w-100 justify-content-end">
-                <button type="button" class="btn photo-viewer-nav-button" onClick={this.startVotingButtonClick}>Vote</button>
+                {this.renderVotingButton()}
                 <button type="button" class="btn photo-viewer-nav-button" onClick={this.slideshowButtonClick}>Slideshow</button>
                 <button type="button" class="btn photo-viewer-nav-button" onClick={this.getPhotosFromServer}>Shuffle</button>                
             </nav>                
         );
+    }
+
+    renderVotingButton = () => {
+        if (this.state.existingVotes.length > 0) {
+            return (<button type="button" class="btn photo-viewer-nav-button" data-toggle="modal" data-target="#myvotes-dialog">My votes</button>);
+        }
+        else {
+            return (<button type="button" class="btn photo-viewer-nav-button" onClick={this.startVotingButtonClick}>Vote</button>);
+        }
     }
 
     renderMessageBoxDialogs = () => {
@@ -118,6 +137,7 @@ class ImageViewingArea extends React.Component {
                 {this.renderVotingSaveConfirmationDialog()}
                 {this.renderVotingSuccessConfirmationDialog()}
                 {this.renderExceptionMessageDialog()}
+                {this.renderMyVotesDialog()}
             </div>
         );
     }
@@ -127,6 +147,31 @@ class ImageViewingArea extends React.Component {
             <nav class="navbar nav-tabs ml-auto w-100 justify-content-end">
                 <button type="button" class="btn photo-viewer-nav-button" onClick={this.cancelVotingButtonClick}>Cancel vote</button>
             </nav>);
+    }
+
+    renderMyVotesDialog = () => {
+        return (
+            <div class="modal fade" id="myvotes-dialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="myvotes-title">My votes</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            You have voted for photos:<br/>
+                            {this.state.existingVotes.map((item, index) => <div>{index + 1}. {item}<br/></div>) }
+                            <p>Would you like to change these votes?</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" onClick={this.mvVotesYesButtonClick}>Yes</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                        </div>
+                    </div>
+                </div>
+            </div>);
     }
 
     renderVotingInstructionsDialog = () => {
@@ -222,6 +267,10 @@ class ImageViewingArea extends React.Component {
         $("#voting-instructions-dialog").modal('show');
     }
 
+    mvVotesYesButtonClick = () => {
+        this.startVotingButtonClick();
+    }
+
     commenceVotingButtonClick = () => {
         this.setState({ viewType: ViewTypes.votingMode, currentVoteIndex: 0, provisionalVotes: [0, 0, 0] });
     }
@@ -231,6 +280,7 @@ class ImageViewingArea extends React.Component {
         this.postDataToServer("../SubmitVotes", { CategoryId: parseInt(this.props.categoryId), PhotoIds: this.state.provisionalVotes })
             .then((data) => {
                 if (data.success) {
+                    this.setState({ existingVotes: data.result });
                     $("#voting-success-confirmation-dialog").modal('show');
                 }
                 else {

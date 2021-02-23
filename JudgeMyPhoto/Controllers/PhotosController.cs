@@ -152,9 +152,9 @@ namespace Marcware.JudgeMyPhoto.Controllers
         #endregion
 
         #region Vote photos
-        public async Task<ProcessResult<bool>> SubmitVotes([FromBody]VotePhotosViewModel viewModel)
+        public async Task<ProcessResult<string[]>> SubmitVotes([FromBody]VotePhotosViewModel viewModel)
         {
-            ProcessResult<bool> result = new ProcessResult<bool>();
+            ProcessResult<string[]> result = new ProcessResult<string[]>();
 
             if (viewModel.PhotoIds.Length != 3)
                 result.AddError("Invalid number of photos voted for");
@@ -205,7 +205,39 @@ namespace Marcware.JudgeMyPhoto.Controllers
             if (result.Success)
             {                
                 _db.PhotoVotes.RemoveRange(_db.PhotoVotes.Where(p => p.Photo.Category.CategoryId == viewModel.CategoryId && p.Voter.UserName == user.UserName));
-                result = _db.SaveAdditions(votes);
+                ProcessResult<bool> saveResult = _db.SaveAdditions(votes);
+                if (!saveResult.Success)
+                    result.AddError(saveResult.ErrorMessage);
+            }
+
+            if (result.Success)
+            {
+                result = await GetExistingVotes(viewModel.CategoryId);
+            }
+
+            return result;
+        }
+
+        public async Task<ProcessResult<string[]>> GetExistingVotes(int id)
+        {
+            ProcessResult<string[]> result = new ProcessResult<string[]>();
+
+            ApplicationUser user = null;
+            if (result.Success)
+            {
+                user = await _userManager.FindByNameAsync(User.Identity.Name);
+                if (user == null)
+                    result.AddError("Unable to find this user");
+            }
+
+            if (result.Success)
+            {
+                string[] votes = _db.PhotoVotes
+                        .Where(v => v.Photo.Category.CategoryId == id && v.Voter.UserName == user.UserName)
+                        .OrderBy(v => v.Position)
+                        .Select(v => v.Photo.AnonymousPhotoName)
+                        .ToArray();
+                result.SetResult(votes);
             }
 
             return result;
