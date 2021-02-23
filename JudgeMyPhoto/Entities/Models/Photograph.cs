@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Marcware.JudgeMyPhoto.Entities.Models
 {
@@ -54,5 +55,10 @@ namespace Marcware.JudgeMyPhoto.Entities.Models
         /// </summary>
         [Required]
         public ApplicationUser Photographer { get; set; }
+
+        /// <summary>
+        /// Votes for this photo
+        /// </summary>
+        public IEnumerable<PhotoVote> Votes { get; set; }
     }
 }

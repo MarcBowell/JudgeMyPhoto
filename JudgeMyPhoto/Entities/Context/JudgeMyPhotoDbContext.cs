@@ -37,6 +37,11 @@ namespace Marcware.JudgeMyPhoto.Entities.Context
         /// </summary>
         public DbSet<PhotoCategory> PhotoCategories { get; set; }
 
+        /// <summary>
+        /// Photo votes
+        /// </summary>
+        public DbSet<PhotoVote> PhotoVotes { get; set; }
+
         public ProcessResult<bool> SaveUpdates(params object[] entities)
         {
             ProcessResult<bool> result = new ProcessResult<bool>();

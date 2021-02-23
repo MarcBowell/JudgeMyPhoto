@@ -7,13 +7,30 @@ class ImageComponent extends React.Component {
         let photoUrl = `../GetFullPhoto?cId=${this.props.categoryId}&pId=${this.props.photoId}`;
         let photoClass = "photo-small ";
         if (this.props.orientation == "L")
-            photoClass = photoClass + "landscape-image";
+            photoClass = photoClass + "landscape-image ";
         else
-            photoClass = photoClass + "portrait-image";
+            photoClass = photoClass + "portrait-image ";
+        if (this.props.votingPosition > 0 && this.props.viewType == ViewTypes.votingMode)
+            photoClass = photoClass + "photo-provisional-voted";        
+
         return (
-            <img class={photoClass} src={photoUrl} onClick={(e) => this.photoHandleClick(e, this.props.photoId)}></img>
+            <div class="image-container">
+                <img class={photoClass} src={photoUrl} onClick={(e) => this.photoHandleClick(e, this.props.photoId)}></img>
+                {this.renderPhotoText()}
+            </div>
+            
         )
     };
+
+    renderPhotoText = () => {
+        if (this.props.viewType == ViewTypes.votingMode && this.props.votingPosition > 0) {
+            return (<div class="image-text">{this.props.votingPosition}</div>);
+        }
+        else {
+            return ("");
+        }
+    }
+
 
     photoHandleClick = (e, pId) => {
         e.stopPropagation();
@@ -21,11 +38,18 @@ class ImageComponent extends React.Component {
     }
 }
 
-const ViewTypes = Object.freeze({ "slideShow": 1, "photoList": 2 });
+const ViewTypes = Object.freeze({ "slideShow": 1, "photoList": 2, "votingMode": 3 });
 class ImageViewingArea extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { photos: [], viewType: ViewTypes.photoList, activeSlideshowPhoto: 0 };
+        this.state = {
+            photos: [],
+            viewType: ViewTypes.photoList,
+            activeSlideshowPhoto: 0,
+            currentVoteIndex: 0,
+            provisionalVotes: [0, 0, 0],
+            lastExceptionMessage: ""
+        };
         this.getPhotosFromServer();
     }
 
@@ -41,24 +65,205 @@ class ImageViewingArea extends React.Component {
     }
 
     selectPhotoClick = (photoId) => {
-        this.setState({ activeSlideshowPhoto: photoId, viewType: ViewTypes.slideShow });
+        if (this.state.viewType == ViewTypes.photoList) {
+            this.setState({ activeSlideshowPhoto: photoId, viewType: ViewTypes.slideShow });
+        }
+        else {
+            let provisionalVotes = this.state.provisionalVotes.map((x) => x);
+            provisionalVotes[this.state.currentVoteIndex] = photoId;
+            let votedIndex = this.state.currentVoteIndex + 1;         
+            this.setState({ currentVoteIndex: votedIndex, provisionalVotes: provisionalVotes});
+            if (votedIndex > 2)
+                this.commitPhotoVote();
+        }
+    }
+
+    commitPhotoVote = () => {
+        $("#voting-save-confirmation-dialog").modal('show');        
+    }
+
+    getProvisionalVotingFor = (itemId) => {
+        return this.state.provisionalVotes.findIndex((x) => x == itemId) + 1;
     }
 
     renderPhotoList = () => {
         const items = this.state.photos.map((item) =>
-            <ImageComponent categoryId={this.props.categoryId} photoId={item.photoId} orientation={item.orientation} selectPhotoClick={this.selectPhotoClick} />
+            <ImageComponent categoryId={this.props.categoryId} photoId={item.photoId} orientation={item.orientation} selectPhotoClick={this.selectPhotoClick} votingPosition={this.viewType == ViewTypes.photoList ? item.votingPosition : this.getProvisionalVotingFor(item.photoId)} viewType={this.state.viewType} />
         );
         return (
             <div>
-                <nav class="navbar nav-tabs ml-auto w-100 justify-content-end">                    
-                    <button type="button" class="btn photo-viewer-nav-button" onClick={this.slideshowButtonClick}>Slideshow</button>
-                    <button type="button" class="btn photo-viewer-nav-button" onClick={this.getPhotosFromServer}>Shuffle</button>
-                </nav>
+                {this.state.viewType == ViewTypes.votingMode ? this.renderVotingListMenu() : this.renderPhotoListMenu() }
                 <div class="small-photo-container">
                     {items}
                 </div>
+                {this.renderMessageBoxDialogs()}
             </div>
         );
+    }
+
+    renderPhotoListMenu = () => {
+        return (
+            <nav class="navbar nav-tabs ml-auto w-100 justify-content-end">
+                <button type="button" class="btn photo-viewer-nav-button" onClick={this.startVotingButtonClick}>Vote</button>
+                <button type="button" class="btn photo-viewer-nav-button" onClick={this.slideshowButtonClick}>Slideshow</button>
+                <button type="button" class="btn photo-viewer-nav-button" onClick={this.getPhotosFromServer}>Shuffle</button>                
+            </nav>                
+        );
+    }
+
+    renderMessageBoxDialogs = () => {
+        return (
+            <div>
+                {this.renderVotingInstructionsDialog()}
+                {this.renderVotingSaveConfirmationDialog()}
+                {this.renderVotingSuccessConfirmationDialog()}
+                {this.renderExceptionMessageDialog()}
+            </div>
+        );
+    }
+
+    renderVotingListMenu = () => {
+        return (
+            <nav class="navbar nav-tabs ml-auto w-100 justify-content-end">
+                <button type="button" class="btn photo-viewer-nav-button" onClick={this.cancelVotingButtonClick}>Cancel vote</button>
+            </nav>);
+    }
+
+    renderVotingInstructionsDialog = () => {
+        return (
+            <div class="modal fade" id="voting-instructions-dialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="voting-instructions-title">Voting instructions</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            Fair dinkum. To vote for your favourite photos, click on each selected photo in turn from first to third favourite photos. Once saved, you can change your votes at any time by voting again.
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" onClick={this.commenceVotingButtonClick}>OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>);
+    }
+
+    renderVotingSaveConfirmationDialog = () => {
+        return (
+            <div class="modal fade" id="voting-save-confirmation-dialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="voting-save-confirmation-title">Voting confirmation</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            Strewth, that's a good selection. Do you want to save these votes?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" onClick={this.saveVotingYesButtonClick}>Yes</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal" onClick={this.saveVotingNoButtonClick}>No</button>
+                        </div>
+                    </div>
+                </div>
+            </div>);
+    }
+
+    renderVotingSuccessConfirmationDialog = () => {
+        return (
+            <div class="modal fade" id="voting-success-confirmation-dialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="voting-success-confirmation-title">Voting update</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            Bonzo! Your votes have been saved. Have a good day.
+                        </div>
+                        <div class="modal-footer">                            
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>);
+    }
+
+    renderExceptionMessageDialog = () => {
+        return (
+            <div class="modal fade" id="exception-message-dialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exception-message-title">You have an error</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            Oops. An error has occurred. {this.state.lastExceptionMessage}.
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Ok</button>
+                        </div>
+                    </div>
+                </div>
+            </div>);
+    }
+
+    startVotingButtonClick = () => {
+        $("#voting-instructions-dialog").modal('show');
+    }
+
+    commenceVotingButtonClick = () => {
+        this.setState({ viewType: ViewTypes.votingMode, currentVoteIndex: 0, provisionalVotes: [0, 0, 0] });
+    }
+
+    saveVotingYesButtonClick = () => {
+        this.setState({ viewType: ViewTypes.photoList });
+        this.postDataToServer("../SubmitVotes", { CategoryId: parseInt(this.props.categoryId), PhotoIds: this.state.provisionalVotes })
+            .then((data) => {
+                if (data.success) {
+                    $("#voting-success-confirmation-dialog").modal('show');
+                }
+                else {
+                    this.setState({ lastExceptionMessage: data.errorMessage + ". Please try to vote again or contact your system administrator" });
+                    $("#exception-message-dialog").modal('show');                    
+                }                
+            });
+    }
+
+    saveVotingNoButtonClick = () => {
+        this.commenceVotingButtonClick();
+    }
+
+    cancelVotingButtonClick = () => {
+        this.setState({ viewType: ViewTypes.photoList });
+    }
+
+    async postDataToServer(url, data) {
+        // Default options are marked with *
+        const response = await fetch(url, {
+            method: 'POST',
+            mode: 'same-origin', // no-cors, *cors, same-origin
+            cache: 'no-store', // *default, no-cache, reload, force-cache, only-if-cached
+            credentials: 'include', // include, *same-origin, omit
+            headers: {
+                'Content-Type': 'application/json'
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            redirect: 'error', 
+            referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+            body: JSON.stringify(data) // body data type must match "Content-Type" header
+        });
+        return response.json(); // parses JSON response into native JavaScript objects
     }
 
     slideshowButtonClick = () => {
@@ -76,7 +281,7 @@ class ImageViewingArea extends React.Component {
     }
 
     render() {
-        if (this.state.viewType == ViewTypes.photoList)
+        if (this.state.viewType == ViewTypes.photoList || this.state.viewType == ViewTypes.votingMode)
             return this.renderPhotoList();
         else
             return this.renderSlideShow();

@@ -151,6 +151,67 @@ namespace Marcware.JudgeMyPhoto.Controllers
         }
         #endregion
 
+        #region Vote photos
+        public async Task<ProcessResult<bool>> SubmitVotes([FromBody]VotePhotosViewModel viewModel)
+        {
+            ProcessResult<bool> result = new ProcessResult<bool>();
+
+            if (viewModel.PhotoIds.Length != 3)
+                result.AddError("Invalid number of photos voted for");
+
+            ApplicationUser user = null;
+            if (result.Success)
+            {
+                user = await _userManager.FindByNameAsync(User.Identity.Name);
+                if (user == null)
+                    result.AddError("Unable to find this user");
+            }
+
+            PhotoCategory category = null;
+            if (result.Success)
+            {
+                category = _db.PhotoCategories.FirstOrDefault(c => c.CategoryId == viewModel.CategoryId);
+                if (category == null)
+                    result.AddError("Unable to find this category");
+            }
+
+            PhotoVote[] votes = new PhotoVote[3];
+            if (result.Success)
+            {                
+                int position = 0;
+                foreach (int photoId in viewModel.PhotoIds)
+                {
+                    
+                    Photograph photo = _db.Photographs
+                        .FirstOrDefault(p => p.PhotoId == photoId);
+                    if (photo == null)
+                    {
+                        result.AddError($"Unable to find photo id {photoId}");
+                    }
+                    else
+                    {
+                        PhotoVote vote = new PhotoVote()
+                        {
+                            Position = position + 1,
+                            Voter = user,
+                            Photo = photo
+                        };
+                        votes[position] = vote;
+                    }
+                    position++;
+                }
+            }
+
+            if (result.Success)
+            {                
+                _db.PhotoVotes.RemoveRange(_db.PhotoVotes.Where(p => p.Photo.Category.CategoryId == viewModel.CategoryId && p.Voter.UserName == user.UserName));
+                result = _db.SaveAdditions(votes);
+            }
+
+            return result;
+        }
+        #endregion
+
         #region Photo viewing and judging
         public async Task<IActionResult> Index(int id)
         {

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity;
 
 namespace Marcware.JudgeMyPhoto.Entities.Models
 {
@@ -8,5 +9,10 @@ namespace Marcware.JudgeMyPhoto.Entities.Models
         /// Nickname of the user
         /// </summary>
         public string Nickname { get; set; }
+
+        /// <summary>
+        /// Votes for this photo
+        /// </summary>
+        public IEnumerable<PhotoVote> Votes { get; set; }
     }
 }
