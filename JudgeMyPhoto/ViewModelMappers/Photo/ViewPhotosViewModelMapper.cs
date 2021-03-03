@@ -1,13 +1,15 @@
-﻿using Marcware.JudgeMyPhoto.ViewModels.Photo;
+﻿using Marcware.JudgeMyPhoto.Entities.Models;
+using Marcware.JudgeMyPhoto.ViewModels.Photo;
 
 namespace Marcware.JudgeMyPhoto.ViewModelMappers.Photo
 {
     public class ViewPhotosViewModelMapper
     {
-        public ViewPhotosViewModel BuildViewModel(int categoryId)
+        public ViewPhotosViewModel BuildViewModel(PhotoCategory category)
         {
             ViewPhotosViewModel viewModel = new ViewPhotosViewModel();
-            viewModel.CategoryId = categoryId;
+            viewModel.CategoryId = category.CategoryId;
+            viewModel.StatusCode = category.StatusCode;
             return viewModel;
         }
     }

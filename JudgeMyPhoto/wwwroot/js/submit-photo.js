@@ -2,7 +2,7 @@
 const rootElement = document.getElementById('root')
 
 // Create a ES6 class components
-export class UploadImageComponent extends React.Component {
+class UploadImageComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = { photoImage: "", uploadProgress: 0, loadingImage: true };
@@ -116,7 +116,7 @@ export class UploadImageComponent extends React.Component {
     }
 }
 
-export class UploadImageArea extends React.Component {
+class UploadImageArea extends React.Component {
     // Use the render function to return JSX component
     render() {
         return (

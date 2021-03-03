@@ -251,8 +251,12 @@ namespace Marcware.JudgeMyPhoto.Controllers
 
             if (categoryStatus.Success)
             {
+                PhotoCategory category = await _db.
+                    PhotoCategories
+                    .FirstOrDefaultAsync(p => p.CategoryId == id);
+
                 ViewPhotosViewModelMapper mapper = new ViewPhotosViewModelMapper();
-                ViewPhotosViewModel viewModel = mapper.BuildViewModel(id);
+                ViewPhotosViewModel viewModel = mapper.BuildViewModel(category);
                 return View(viewModel);
             }
             else
@@ -285,6 +289,62 @@ namespace Marcware.JudgeMyPhoto.Controllers
                 .Select(p => mapper.BuildViewModel(p))
                 .ToList();
             return new JsonResult(result);
+        }
+
+        public async Task<ProcessResult<PhotoScoreboardItemViewModel[]>> GetPhotoScoreboard(int id)
+        {
+            ProcessResult<PhotoScoreboardItemViewModel[]> result = new ProcessResult<PhotoScoreboardItemViewModel[]>();
+
+            try
+            {
+                List<Photograph> photographs = await _db.Photographs
+                        .Include(p => p.Votes)
+                        .Where(p => p.Category.CategoryId == id)
+                        .ToListAsync();
+
+                List<KeyValuePair<Photograph, int>> allScores = new List<KeyValuePair<Photograph, int>>();
+                foreach (Photograph photo in photographs)
+                {
+                    allScores.Add(new KeyValuePair<Photograph, int>(photo, photo.Votes.Sum(v => 4 - v.Position)));
+                }
+                allScores = allScores
+                    .OrderByDescending(i => i.Value)
+                    .ThenBy(i => i.Key.AnonymousPhotoName)
+                    .ToList();
+
+                PhotoScoreboardItemViewModelMapper mapper = new PhotoScoreboardItemViewModelMapper();
+                int relativePosition = 0;
+                int actualPosition = 0;
+                int previousScore = 1000000;
+                List<PhotoScoreboardItemViewModel> scoreboard = new List<PhotoScoreboardItemViewModel>();
+                foreach (KeyValuePair<Photograph, int> photoScore in allScores)
+                {
+                    actualPosition++;
+                    if (photoScore.Value < previousScore)
+                        relativePosition = actualPosition;
+                    if (relativePosition <= 5)
+                    {
+                        scoreboard.Add(mapper.BuildModel(relativePosition, photoScore.Value, photoScore.Key));
+                    }
+
+                    previousScore = photoScore.Value;
+                }
+
+                if (scoreboard.Count < 3)
+                {
+                    result.AddError("Unable to find enough photos in the scoreboard");
+                }
+                else
+                {
+                    result.SetResult(scoreboard.ToArray());
+                }
+            }
+            catch (Exception e)
+            {
+                result.AddError(e.Message);
+            }
+
+            return result;
         }
         #endregion
 

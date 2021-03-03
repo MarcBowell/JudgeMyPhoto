@@ -38,6 +38,7 @@ class ImageComponent extends React.Component {
     }
 }
 
+const StatusTypes = Object.freeze({ "judging": "OJ", "completed": "CM" });
 const ViewTypes = Object.freeze({ "slideShow": 1, "photoList": 2, "votingMode": 3 });
 class ImageViewingArea extends React.Component {
     constructor(props) {
@@ -49,7 +50,8 @@ class ImageViewingArea extends React.Component {
             currentVoteIndex: 0,
             provisionalVotes: [0, 0, 0],
             lastExceptionMessage: "",
-            existingVotes: []
+            existingVotes: [],
+            scoreboard: []
         };
         this.getPhotosFromServer();
     }
@@ -64,14 +66,16 @@ class ImageViewingArea extends React.Component {
                 this.setState({ photos: data });
             });
 
-        let votesUrl = `../GetExistingVotes/${this.props.categoryId}`;
-        fetch(votesUrl)
-            .then((response) => {
-                return response.json();
-            })
-            .then((data) => {    
-                this.setState({ existingVotes: data.result });
-            });
+        if (this.props.categoryStatus == StatusTypes.judging) {
+            let votesUrl = `../GetExistingVotes/${this.props.categoryId}`;
+            fetch(votesUrl)
+                .then((response) => {
+                    return response.json();
+                })
+                .then((data) => {
+                    this.setState({ existingVotes: data.result });
+                });
+        }
     }
 
     selectPhotoClick = (photoId) => {
@@ -122,11 +126,17 @@ class ImageViewingArea extends React.Component {
     }
 
     renderVotingButton = () => {
-        if (this.state.existingVotes.length > 0) {
-            return (<button type="button" class="btn photo-viewer-nav-button" data-toggle="modal" data-target="#myvotes-dialog">My votes</button>);
+        if (this.props.categoryStatus == StatusTypes.judging) {
+            if (this.state.existingVotes.length > 0) {
+                return (<button type="button" class="btn photo-viewer-nav-button" data-toggle="modal" data-target="#myvotes-dialog">My votes</button>);
+            }
+            else {
+                return (<button type="button" class="btn photo-viewer-nav-button" onClick={this.startVotingButtonClick}>Vote</button>);
+            }
         }
-        else {
-            return (<button type="button" class="btn photo-viewer-nav-button" onClick={this.startVotingButtonClick}>Vote</button>);
+
+        if (this.props.categoryStatus == StatusTypes.completed) {
+            return (<button type="button" class="btn photo-viewer-nav-button" onClick={this.showScoreboardButtonClick}>Scoreboard</button>);
         }
     }
 
@@ -138,6 +148,7 @@ class ImageViewingArea extends React.Component {
                 {this.renderVotingSuccessConfirmationDialog()}
                 {this.renderExceptionMessageDialog()}
                 {this.renderMyVotesDialog()}
+                {this.renderScoreboardDialog()}
             </div>
         );
     }
@@ -241,6 +252,37 @@ class ImageViewingArea extends React.Component {
             </div>);
     }
 
+    renderScoreboardDialog = () => {
+        return (
+            <div class="modal fade" id="scoreboard-dialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="scoreboard-dialog-title">Voting scoreboard</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            {this.state.scoreboard.map((item) => this.renderScoreboardDialogItem(item))}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>);
+    }
+
+    renderScoreboardDialogItem = (item) => {
+        return (
+            <div class="row">                
+                <div class="col">{item.position} - {item.photoName}</div>
+                <div class="col">{item.points} points</div>
+            </div>
+            )
+    }
+
     renderExceptionMessageDialog = () => {
         return (
             <div class="modal fade" id="exception-message-dialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
@@ -314,6 +356,25 @@ class ImageViewingArea extends React.Component {
             body: JSON.stringify(data) // body data type must match "Content-Type" header
         });
         return response.json(); // parses JSON response into native JavaScript objects
+    }
+
+    showScoreboardButtonClick = () => {
+        this.setState({ scoreboard: [{ position: "", points: "", photoName: "Loading..."}] });
+        $('#scoreboard-dialog').modal('show');
+
+        const url = `../GetPhotoScoreboard/${this.props.categoryId}`;
+        fetch(url)
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.success) {
+                    this.setState({ scoreboard: data.result });
+                }
+                else {
+                    $('#scoreboard-dialog').modal('hide');
+                    this.setState({ lastExceptionMessage: data.errorMessage });
+                    $("#exception-message-dialog").modal('show');
+                }
+            })
     }
 
     slideshowButtonClick = () => {
